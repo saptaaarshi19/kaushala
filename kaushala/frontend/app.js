@@ -1,1246 +1,2274 @@
-/* =========================================================
-   KAUSHALA
-   Main application JavaScript
-========================================================= */
+const $=s=>document.querySelector(s);
 
-const $ = selector =>
-    document.querySelector(selector);
+let accountRole='student',recruiterVerified=false,applicationsTotal=28;
 
+const submittedApplications=new Set();
 
-/* =========================================================
-   GLOBAL STATE
-========================================================= */
-
-let accountRole = 'student';
-
-let recruiterVerified = false;
-
-let applicationsTotal = 28;
-
-const submittedApplications = new Set();
-
-
-/* =========================================================
-   PROJECT DATA
-========================================================= */
-
-const projects = [
-
-    {
-        name:'Cartly',
-        category:'E-commerce',
-        desc:'A fast, accessible local commerce experience.',
-        visibility:'Public',
-        repo:'https://github.com/'
-    },
-
-    {
-        name:'StudyFlow',
-        category:'Education',
-        desc:'A collaborative study planner for campus teams.',
-        visibility:'Recruiters only',
-        repo:'https://github.com/'
-    },
-
-    {
-        name:'Pulse',
-        category:'Technology',
-        desc:'Real-time dashboard for open-source teams.',
-        visibility:'Public',
-        repo:'https://github.com/'
-    }
-
+const projects=[
+  {
+    name:'Cartly',
+    category:'E-commerce',
+    desc:'A fast, accessible local commerce experience.',
+    visibility:'Public'
+  },
+  {
+    name:'StudyFlow',
+    category:'Education',
+    desc:'A collaborative study planner for campus teams.',
+    visibility:'Recruiters only'
+  },
+  {
+    name:'Pulse',
+    category:'Technology',
+    desc:'Real-time dashboard for open-source teams.',
+    visibility:'Public'
+  }
 ];
 
-
-/* =========================================================
-   OPPORTUNITY DATA
-========================================================= */
-
-const opportunities = [
-
-    {
-        initial:'N',
-        company:'Nova Labs',
-        title:'Frontend Engineering Intern',
-        type:'internship',
-        model:'project',
-        location:'Remote',
-        category:'Technology',
-        match:'92%'
-    },
-
-    {
-        initial:'C',
-        company:'Canvas',
-        title:'Product Builder Fellowship',
-        type:'internship',
-        model:'project',
-        location:'Bengaluru',
-        category:'Technology',
-        match:'87%'
-    },
-
-    {
-        initial:'S',
-        company:'Supercell',
-        title:'Full-stack Intern',
-        type:'internship',
-        model:'experience',
-        location:'Hybrid',
-        category:'Technology',
-        match:'84%'
-    },
-
-    {
-        initial:'E',
-        company:'Edvora',
-        title:'Learning Experience Intern',
-        type:'internship',
-        model:'project',
-        location:'Remote',
-        category:'Education',
-        match:'81%'
-    }
-
+const opportunities=[
+  ['N','Nova Labs','Frontend Engineering Intern','Remote · 12 weeks','92%'],
+  ['C','Canvas','Product Builder Fellowship','Bengaluru · Project-based','87%'],
+  ['S','Supercell','Full-stack Intern','Hybrid · Experience-based','84%'],
+  ['E','Edvora','Learning Experience Intern','Remote · Education','81%']
 ];
-
-
-/* =========================================================
-   PROJECT RENDER
-========================================================= */
 
 function renderProjects(){
 
-    const html = projects
-        .map(project => `
+  let h=projects.map(p=>`
+    <article class="project">
 
-            <article class="project">
+      <div class="project-art">
+        ${p.name}
+        <br>
+        <small>${p.category.toUpperCase()}</small>
+      </div>
 
-                <div class="project-art">
+      <div class="project-body">
 
-                    ${project.name}
+        <h3>${p.name}</h3>
 
-                    <br>
+        <p>${p.desc}</p>
 
-                    <small>
-                        ${project.category.toUpperCase()}
-                    </small>
+        <div class="project-meta">
+          <span>${p.category}</span>
+          <span>◉ ${p.visibility}</span>
+        </div>
 
-                </div>
+      </div>
 
-                <div class="project-body">
+    </article>
+  `).join('');
 
-                    <h3>
-                        ${project.name}
-                    </h3>
-
-                    <p>
-                        ${project.desc}
-                    </p>
-
-                    <div class="project-meta">
-
-                        <span>
-                            ${project.category}
-                        </span>
-
-                        <span>
-                            ◉ ${project.visibility}
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </article>
-
-        `)
-        .join('');
-
-    const cards = $('#projectCards');
-
-    const all = $('#allProjects');
-
-    if(cards)
-        cards.innerHTML = html;
-
-    if(all)
-        all.innerHTML = html;
+  $('#projectCards').innerHTML=h;
+  $('#allProjects').innerHTML=h;
 }
 
 
-/* =========================================================
-   OPPORTUNITY RENDER
-========================================================= */
+function renderOpps(){
 
-function renderOpps(filter='all'){
+  $('#oppList').innerHTML=opportunities.map((o,i)=>{
 
-    const list = $('#oppList');
+    let applied=submittedApplications.has(o[2]);
 
-    if(!list)
-        return;
+    return `
+      <article class="opp-card">
 
-    let filtered = opportunities;
+        <div class="company ${['coral','mint','lilac','blue'][i]}">
+          ${o[0]}
+        </div>
 
-    if(filter !== 'all'){
+        <div>
+          <h3>${o[2]}</h3>
+          <p>${o[1]} · ${o[3]}</p>
+        </div>
 
-        filtered = opportunities.filter(
-            opportunity => {
+        <span class="match">
+          ${o[4]} match
+        </span>
 
-                if(filter === 'internship')
-                    return opportunity.type === 'internship';
+        <button
+          class="primary apply"
+          ${applied?'disabled':''}
+          onclick="applyOpportunity('${o[2]}')"
+        >
+          ${applied?'Applied ✓':'Apply →'}
+        </button>
 
-                if(filter === 'project')
-                    return opportunity.model === 'project';
+      </article>
+    `;
 
-                if(filter === 'experience')
-                    return opportunity.model === 'experience';
-
-                if(filter === 'remote')
-                    return opportunity.location === 'Remote';
-
-                return true;
-            }
-        );
-
-    }
-
-    list.innerHTML = filtered
-        .map(
-            (opportunity,index) => {
-
-                const applied =
-                    submittedApplications.has(
-                        opportunity.title
-                    );
-
-                const colour =
-                    ['coral','mint','lilac','blue'][index % 4];
-
-                return `
-
-                    <article class="opp-card">
-
-                        <div class="company ${colour}">
-                            ${opportunity.initial}
-                        </div>
-
-                        <div>
-
-                            <h3>
-                                ${opportunity.title}
-                            </h3>
-
-                            <p>
-                                ${opportunity.company}
-                                ·
-                                ${opportunity.location}
-                                ·
-                                ${opportunity.category}
-                            </p>
-
-                        </div>
-
-                        <span class="match">
-                            ${opportunity.match} match
-                        </span>
-
-                        <button
-                            class="primary apply"
-                            ${applied ? 'disabled' : ''}
-                            data-opportunity="${encodeURIComponent(opportunity.title)}"
-                        >
-                            ${
-                                applied
-                                    ? 'Applied ✓'
-                                    : 'Apply →'
-                            }
-                        </button>
-
-                    </article>
-
-                `;
-            }
-        )
-        .join('');
-
-    list
-        .querySelectorAll('.apply')
-        .forEach(button => {
-
-            button.onclick = () => {
-
-                const title =
-                    decodeURIComponent(
-                        button.dataset.opportunity
-                    );
-
-                applyOpportunity(title);
-
-            };
-
-        });
-
+  }).join('');
 }
 
 
-/* =========================================================
-   TOAST
-========================================================= */
+function toast(m){
 
-function toast(message){
+  let e=$('#toast');
 
-    const element = $('#toast');
+  e.textContent=m;
 
-    if(!element)
-        return;
+  e.classList.remove('hidden');
 
-    element.textContent = message;
-
-    element.classList.remove('hidden');
-
-    clearTimeout(
-        window.__kaushalaToast
-    );
-
-    window.__kaushalaToast =
-        setTimeout(
-            () =>
-                element.classList.add('hidden'),
-            2800
-        );
-
+  setTimeout(
+    ()=>e.classList.add('hidden'),
+    2800
+  );
 }
 
-
-/* =========================================================
-   APPLICATION
-========================================================= */
 
 function applyOpportunity(title){
 
-    if(accountRole === 'recruiter'){
-
-        toast(
-            'Recruiter accounts cannot apply to opportunities.'
-        );
-
-        return;
-    }
-
-    if(
-        submittedApplications.has(title)
-    ){
-
-        toast(
-            'Your K.ID has already applied to this opportunity.'
-        );
-
-        return;
-    }
-
-    submittedApplications.add(title);
-
-    applicationsTotal++;
-
-    const profileName =
-        $('#profileName')
-            ?.childNodes[0]
-            ?.textContent
-            ?.trim() ||
-        'Aryan Mehta';
-
-    const kid =
-        $('#kidValue')
-            ?.textContent ||
-        'KN-8240';
-
-    const row =
-        $('#applicantRows');
-
-    if(row){
-
-        const project =
-            projects[0];
-
-        const now =
-            new Date().toLocaleString(
-                'en-IN',
-                {
-                    day:'2-digit',
-                    month:'short',
-                    year:'numeric',
-                    hour:'2-digit',
-                    minute:'2-digit'
-                }
-            );
-
-        row.insertAdjacentHTML(
-            'afterbegin',
-            `
-
-                <tr>
-
-                    <td>
-                        <b>#NEW</b>
-                    </td>
-
-                    <td>
-                        ${kid}
-                    </td>
-
-                    <td>
-                        <strong>
-                            ${profileName}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${title}
-                    </td>
-
-                    <td>
-                        <a href="#">
-                            ${project.name} ↗
-                        </a>
-                    </td>
-
-                    <td>
-                        ${now}
-                    </td>
-
-                    <td>
-                        <span class="fit">
-                            Pending
-                        </span>
-                    </td>
-
-                </tr>
-
-            `
-        );
-
-    }
-
-    const count =
-        $('#applicationCount');
-
-    if(count)
-        count.textContent =
-            applicationsTotal;
-
-    renderOpps(
-        document.querySelector(
-            '.filters .selected'
-        )?.dataset.filter ||
-        'all'
+  if(accountRole==='recruiter')
+    return toast(
+      'Recruiter accounts cannot apply to opportunities.'
     );
 
-    toast(
-        'Application submitted. Your K.ID can apply once to this opportunity.'
+  if(submittedApplications.has(title))
+    return toast(
+      'Your K.ID has already applied to this opportunity.'
     );
+
+  submittedApplications.add(title);
+
+  applicationsTotal++;
+
+  let name=$('#profileName').childNodes[0].textContent.trim();
+
+  let kid=$('#kidValue').textContent;
+
+  let project=projects[0];
+
+  let row=$('#applicantRows');
+
+  if(row){
+
+    let now=new Date().toLocaleString(
+      'en-IN',
+      {
+        day:'2-digit',
+        month:'short',
+        year:'numeric',
+        hour:'2-digit',
+        minute:'2-digit'
+      }
+    );
+
+    row.insertAdjacentHTML(
+      'afterbegin',
+      `
+      <tr>
+        <td><b>#NEW</b></td>
+        <td>${kid}</td>
+        <td><strong>${name}</strong></td>
+        <td>${title}</td>
+        <td>
+          <a href="#">
+            ${project.name} ↗
+          </a>
+        </td>
+        <td>${now}</td>
+        <td>
+          <span class="fit">Pending</span>
+        </td>
+      </tr>
+      `
+    );
+  }
+
+  let count=$('#applicationCount');
+
+  if(count)
+    count.textContent=applicationsTotal;
+
+  renderOpps();
+
+  toast(
+    'Application submitted. Your K.ID can apply once to this opportunity.'
+  );
 }
 
-
-/* =========================================================
-   RECRUITER ACCESS
-========================================================= */
-
-function updateRecruiterAccess(){
-
-    const recruiter =
-        accountRole === 'recruiter';
-
-    const openJob =
-        $('#openJob');
-
-    const gate =
-        $('#recruiterGate');
-
-    if(openJob){
-
-        openJob.classList.toggle(
-            'hidden',
-            !recruiter ||
-            !recruiterVerified
-        );
-
-    }
-
-    if(gate){
-
-        gate.classList.toggle(
-            'hidden',
-            !recruiter ||
-            recruiterVerified
-        );
-
-    }
-
-    const subtitle =
-        $('#opportunitySubtitle');
-
-    if(!subtitle)
-        return;
-
-    if(
-        recruiter &&
-        recruiterVerified
-    ){
-
-        subtitle.textContent =
-            'You are verified to publish trusted opportunities to matched candidates.';
-
-    }else if(recruiter){
-
-        subtitle.textContent =
-            'Complete verification to publish opportunities to students.';
-
-    }else{
-
-        subtitle.textContent =
-            'Matched to your verified skills, interests, and project categories.';
-
-    }
-
-}
-
-
-/* =========================================================
-   RECRUITER DASHBOARD
-========================================================= */
 
 function renderRecruiterPortal(){
 
-    const root =
-        $('#recruiterDashboard');
+  let root=$('#recruiterDashboard');
 
-    if(!root)
-        return;
+  root.innerHTML=`
 
-    root.innerHTML = `
+    <section class="portal-metrics">
 
-        <section class="recruiter-stats">
+      <div>
+        <span>◌</span>
+        <small>OPPORTUNITIES POSTED</small>
+        <strong>12</strong>
+        <em>+2 This month</em>
+      </div>
 
-            <div>
-                <small>OPPORTUNITIES POSTED</small>
-                <strong>12</strong>
-                <em>+2 This month</em>
-            </div>
+      <div>
+        <span>♙</span>
+        <small>TOTAL APPLICANTS</small>
+        <strong>248</strong>
+        <em>+34 This month</em>
+      </div>
 
-            <div>
-                <small>TOTAL APPLICANTS</small>
-                <strong>248</strong>
-                <em>+34 This month</em>
-            </div>
+      <div>
+        <span>♧</span>
+        <small>SHORTLISTED</small>
+        <strong>38</strong>
+        <em>+6 This month</em>
+      </div>
 
-            <div>
-                <small>SHORTLISTED</small>
-                <strong>38</strong>
-                <em>+6 This month</em>
-            </div>
+      <div>
+        <span>▣</span>
+        <small>INTERVIEWS SCHEDULED</small>
+        <strong>15</strong>
+        <em>+3 This month</em>
+      </div>
 
-            <div>
-                <small>AVERAGE FIT SCORE</small>
-                <strong>86%</strong>
-                <em>Across active roles</em>
-            </div>
+      <div>
+        <span>◉</span>
+        <small>PROFILE VIEWS</small>
+        <strong>1,247</strong>
+        <em>+19% This week</em>
+      </div>
+
+      <div>
+        <span>◈</span>
+        <small>REPO VIEWS (TOTAL)</small>
+        <strong>892</strong>
+        <em>+27% This week</em>
+      </div>
+
+    </section>
+
+
+    <div class="portal-layout">
+
+      <main>
+
+        <section class="portal-panel posted-panel">
+
+          <div class="portal-title">
+
+            <h2>Your Posted Opportunities</h2>
+
+            <a>
+              View All Opportunities →
+            </a>
+
+          </div>
+
+
+          <div class="portal-table-wrap">
+
+            <table class="portal-table">
+
+              <thead>
+
+                <tr>
+                  <th>Job title</th>
+                  <th>Applications</th>
+                  <th>Shortlisted</th>
+                  <th>Status</th>
+                  <th>Posted on</th>
+                  <th>Actions</th>
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                <tr>
+
+                  <td>
+                    <span class="candidate-photo p1">
+                      AM
+                    </span>
+
+                    <b>
+                      AI/ML Intern
+                      <small>
+                        Internship · Remote
+                      </small>
+                    </b>
+                  </td>
+
+                  <td>48</td>
+                  <td>12</td>
+
+                  <td>
+                    <i class="status active">
+                      ● Active
+                    </i>
+                  </td>
+
+                  <td>02 Sep 2026</td>
+
+                  <td>
+                    <button class="row-btn">
+                      View details
+                    </button>
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+                    <span class="candidate-photo p2">
+                      BD
+                    </span>
+
+                    <b>
+                      Backend Developer
+                      <small>
+                        Full-time · Bengaluru
+                      </small>
+                    </b>
+                  </td>
+
+                  <td>76</td>
+                  <td>10</td>
+
+                  <td>
+                    <i class="status active">
+                      ● Active
+                    </i>
+                  </td>
+
+                  <td>28 Aug 2026</td>
+
+                  <td>
+                    <button class="row-btn">
+                      View details
+                    </button>
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+                    <span class="candidate-photo p3">
+                      DS
+                    </span>
+
+                    <b>
+                      Data Science Intern
+                      <small>
+                        Internship · Remote
+                      </small>
+                    </b>
+                  </td>
+
+                  <td>32</td>
+                  <td>6</td>
+
+                  <td>
+                    <i class="status active">
+                      ● Active
+                    </i>
+                  </td>
+
+                  <td>20 Aug 2026</td>
+
+                  <td>
+                    <button class="row-btn">
+                      View details
+                    </button>
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+                    <span class="candidate-photo p4">
+                      FE
+                    </span>
+
+                    <b>
+                      Frontend Developer
+                      <small>
+                        Full-time · Pune
+                      </small>
+                    </b>
+                  </td>
+
+                  <td>55</td>
+                  <td>10</td>
+
+                  <td>
+                    <i class="status closed">
+                      ● Closed
+                    </i>
+                  </td>
+
+                  <td>10 Aug 2026</td>
+
+                  <td>
+                    <button class="row-btn">
+                      View details
+                    </button>
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+
+          <button
+            class="portal-add"
+            id="portalPostJob"
+          >
+            ＋ Post new opportunity
+          </button>
 
         </section>
 
 
-        <section class="panel">
+        <div class="portal-two">
 
-            <div class="panel-title">
 
-                <div>
+          <section class="portal-panel compact-panel">
 
-                    <p class="eyebrow">
-                        OPPORTUNITY PERFORMANCE
-                    </p>
+            <div class="portal-title">
 
-                    <h2>
-                        Roles in motion
-                    </h2>
+              <h2>
+                Top Applicants
+                <small>(This month)</small>
+              </h2>
 
-                </div>
-
-                <button
-                    class="link-btn"
-                    data-tab="opportunities"
-                >
-                    Manage roles →
-                </button>
+              <a>
+                View all →
+              </a>
 
             </div>
 
 
-            <div class="role-health">
+            <ol class="top-applicants">
+
+              <li>
+
+                <b>1</b>
+
+                <span class="candidate-photo p1">
+                  SM
+                </span>
 
                 <div>
+                  <strong>
+                    Saptarshi Mukherjee
+                  </strong>
 
-                    <span class="company coral">
-                        N
-                    </span>
-
-                    <div>
-
-                        <b>
-                            Frontend Engineering Intern
-                        </b>
-
-                        <p>
-                            Project-based · Remote
-                        </p>
-
-                    </div>
-
-                    <strong>
-                        14
-                        <small>applicants</small>
-                    </strong>
-
+                  <small>
+                    AI/ML Intern
+                  </small>
                 </div>
 
+                <em>
+                  Top match
+                </em>
+
+                <i>
+                  92%
+                </i>
+
+              </li>
+
+
+              <li>
+
+                <b>2</b>
+
+                <span class="candidate-photo p2">
+                  PS
+                </span>
 
                 <div>
+                  <strong>
+                    Priya Sharma
+                  </strong>
 
-                    <span class="company mint">
-                        N
-                    </span>
-
-                    <div>
-
-                        <b>
-                            Full-stack Intern
-                        </b>
-
-                        <p>
-                            Experience-based · Hybrid
-                        </p>
-
-                    </div>
-
-                    <strong>
-                        09
-                        <small>applicants</small>
-                    </strong>
-
+                  <small>
+                    Backend Developer
+                  </small>
                 </div>
 
+                <em>
+                  High match
+                </em>
+
+                <i>
+                  88%
+                </i>
+
+              </li>
+
+
+              <li>
+
+                <b>3</b>
+
+                <span class="candidate-photo p3">
+                  AP
+                </span>
 
                 <div>
+                  <strong>
+                    Arjun Patel
+                  </strong>
 
-                    <span class="company lilac">
-                        N
-                    </span>
-
-                    <div>
-
-                        <b>
-                            Product Design Fellow
-                        </b>
-
-                        <p>
-                            Project-based · Bengaluru
-                        </p>
-
-                    </div>
-
-                    <strong>
-                        05
-                        <small>applicants</small>
-                    </strong>
-
+                  <small>
+                    Data Science Intern
+                  </small>
                 </div>
+
+                <em>
+                  High match
+                </em>
+
+                <i>
+                  85%
+                </i>
+
+              </li>
+
+
+              <li>
+
+                <b>4</b>
+
+                <span class="candidate-photo p4">
+                  NS
+                </span>
+
+                <div>
+                  <strong>
+                    Neha Singh
+                  </strong>
+
+                  <small>
+                    Frontend Developer
+                  </small>
+                </div>
+
+                <em>
+                  Good match
+                </em>
+
+                <i>
+                  78%
+                </i>
+
+              </li>
+
+            </ol>
+
+          </section>
+
+
+          <section class="portal-panel compact-panel">
+
+            <div class="portal-title">
+
+              <h2>
+                Repository Views
+                <small>(By applicants)</small>
+              </h2>
+
+              <a>
+                View all →
+              </a>
 
             </div>
+
+
+            <div class="repo-list">
+
+              <div>
+
+                <span class="candidate-photo p1">
+                  SM
+                </span>
+
+                <p>
+                  <b>
+                    Saptarshi Mukherjee
+                  </b>
+
+                  <small>
+                    viewed your repository
+                  </small>
+                </p>
+
+                <em>
+                  AI E-commerce system
+                </em>
+
+                <time>
+                  3 hours ago
+                </time>
+
+              </div>
+
+
+              <div>
+
+                <span class="candidate-photo p2">
+                  PS
+                </span>
+
+                <p>
+                  <b>
+                    Priya Sharma
+                  </b>
+
+                  <small>
+                    viewed your repository
+                  </small>
+                </p>
+
+                <em>
+                  Waste Management
+                </em>
+
+                <time>
+                  5 hours ago
+                </time>
+
+              </div>
+
+
+              <div>
+
+                <span class="candidate-photo p3">
+                  AP
+                </span>
+
+                <p>
+                  <b>
+                    Arjun Patel
+                  </b>
+
+                  <small>
+                    viewed your repository
+                  </small>
+                </p>
+
+                <em>
+                  Learning Platform
+                </em>
+
+                <time>
+                  1 day ago
+                </time>
+
+              </div>
+
+            </div>
+
+          </section>
+
+        </div>
+
+
+        <section class="portal-panel analytics-panel">
+
+          <div>
+
+            <p>
+              REPOSITORY ANALYTICS OVERVIEW
+            </p>
+
+            <div class="analytics-numbers">
+
+              <span>
+                <small>
+                  Total repositories viewed
+                </small>
+                <b>892</b>
+                <em>+27%</em>
+              </span>
+
+              <span>
+                <small>
+                  Unique applicants
+                </small>
+                <b>156</b>
+                <em>+18%</em>
+              </span>
+
+              <span>
+                <small>
+                  Total views
+                </small>
+                <b>1,247</b>
+                <em>+23%</em>
+              </span>
+
+              <span>
+                <small>
+                  Avg. time spent
+                </small>
+                <b>4m 32s</b>
+                <em>+12%</em>
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="repo-bars">
+
+            <small>
+              Most viewed repositories
+            </small>
+
+            <p>
+              AI E-commerce Recommendation
+              <i style="width:94%"></i>
+              <b>342</b>
+            </p>
+
+            <p>
+              Waste Management System
+              <i style="width:79%"></i>
+              <b>298</b>
+            </p>
+
+            <p>
+              Student Learning Platform
+              <i style="width:62%"></i>
+              <b>256</b>
+            </p>
+
+          </div>
 
         </section>
 
-    `;
+      </main>
 
-    root
-        .querySelectorAll('[data-tab]')
-        .forEach(
-            element =>
-                element.onclick =
-                    () =>
-                        switchTab(
-                            element.dataset.tab
-                        )
-        );
 
+      <aside class="portal-side">
+
+
+        <section class="portal-panel company-panel">
+
+          <div class="company-logo">
+            T
+          </div>
+
+          <div>
+
+            <h2>
+              TechNova Solutions
+            </h2>
+
+            <a>
+              ✓ Verified company
+            </a>
+
+          </div>
+
+          <p>
+            Building intelligent digital solutions for tomorrow.
+          </p>
+
+
+          <div class="company-info">
+
+            <span>
+              ⌖ Bangalore, India
+            </span>
+
+            <span>
+              ◎ technova.com
+            </span>
+
+            <span>
+              ♙ 251–500 Employees
+            </span>
+
+            <span>
+              ◈ Software Development
+            </span>
+
+          </div>
+
+
+          <button class="primary compact">
+            ✎ Edit company profile
+          </button>
+
+        </section>
+
+
+        <section class="portal-panel funnel-panel">
+
+          <div class="portal-title">
+
+            <h2>
+              Application Funnel
+            </h2>
+
+            <button>
+              This month⌄
+            </button>
+
+          </div>
+
+
+          <div
+            class="funnel"
+            id="applicationFunnel"
+          >
+
+            <button
+              data-stage="Total applicants"
+              data-value="248"
+              class="funnel-stage f1"
+            >
+              248
+            </button>
+
+            <button
+              data-stage="Screened"
+              data-value="132"
+              class="funnel-stage f2"
+            >
+              132
+            </button>
+
+            <button
+              data-stage="Shortlisted"
+              data-value="38"
+              class="funnel-stage f3"
+            >
+              38
+            </button>
+
+            <button
+              data-stage="Interviews"
+              data-value="15"
+              class="funnel-stage f4"
+            >
+              15
+            </button>
+
+            <button
+              data-stage="Offers"
+              data-value="5"
+              class="funnel-stage f5"
+            >
+              5
+            </button>
+
+          </div>
+
+
+          <div
+            class="funnel-detail"
+            id="funnelDetail"
+          >
+
+            <b>248</b>
+
+            <span>
+              Total applicants
+            </span>
+
+            <small>
+              Select a funnel stage to inspect it.
+            </small>
+
+          </div>
+
+
+          <p class="conversion">
+            Conversion rate:
+            <b>2.0%</b>
+
+            <em>
+              ↗ +0.8% vs last month
+            </em>
+          </p>
+
+        </section>
+
+
+        <section class="portal-panel activity-panel">
+
+          <div class="portal-title">
+
+            <h2>
+              Recent Activity
+            </h2>
+
+            <a>
+              View all →
+            </a>
+
+          </div>
+
+
+          <p>
+            <i>♧</i>
+
+            <span>
+              <b>
+                12 new applications for AI/ML Intern
+              </b>
+
+              <small>
+                2 hours ago
+              </small>
+            </span>
+          </p>
+
+
+          <p>
+            <i>◈</i>
+
+            <span>
+              <b>
+                Saptarshi Mukherjee viewed repository
+              </b>
+
+              <small>
+                3 hours ago
+              </small>
+            </span>
+          </p>
+
+
+          <p>
+            <i>♙</i>
+
+            <span>
+              <b>
+                5 candidates shortlisted for Backend Developer
+              </b>
+
+              <small>
+                5 hours ago
+              </small>
+            </span>
+          </p>
+
+
+          <p>
+            <i>◷</i>
+
+            <span>
+              <b>
+                Interview scheduled with 3 candidates
+              </b>
+
+              <small>
+                Yesterday
+              </small>
+            </span>
+          </p>
+
+        </section>
+
+      </aside>
+
+    </div>
+  `;
+
+
+  $('#portalPostJob').onclick=()=>
+    $('#jobModal').classList.remove('hidden');
+
+
+  document
+    .querySelectorAll('.funnel-stage')
+    .forEach(
+      button=>
+        button.onclick=()=>
+          selectFunnelStage(button)
+    );
 }
 
 
-/* =========================================================
-   APPLICATION START
-========================================================= */
+function selectFunnelStage(button){
+
+  document
+    .querySelectorAll('.funnel-stage')
+    .forEach(
+      stage=>
+        stage.classList.toggle(
+          'selected',
+          stage===button
+        )
+    );
+
+  $('#funnelDetail').innerHTML=`
+
+    <b>${button.dataset.value}</b>
+
+    <span>
+      ${button.dataset.stage}
+    </span>
+
+    <small>
+      Click another stage to compare your pipeline.
+    </small>
+
+  `;
+}
+
+
+$('#headerPostJob')?.addEventListener(
+  'click',
+  ()=>{
+    if(accountRole!=='recruiter') return;
+
+    $('#jobModal')?.classList.remove('hidden');
+  }
+);
+
+
+function updateRecruiterAccess(){
+
+  const recruiter=accountRole==='recruiter';
+
+
+  $('#openJob')?.classList.toggle(
+    'hidden',
+    !recruiter||!recruiterVerified
+  );
+
+
+  $('#recruiterGate')?.classList.toggle(
+    'hidden',
+    !recruiter||recruiterVerified
+  );
+
+
+  /*
+    Recruiters do not create student projects
+    or build student CVs.
+  */
+
+  $('#buildCV')?.classList.toggle(
+    'hidden',
+    recruiter
+  );
+
+  $('#openProject')?.classList.toggle(
+    'hidden',
+    recruiter
+  );
+
+  $('#openProject2')?.classList.toggle(
+    'hidden',
+    recruiter
+  );
+
+  $('#projectsNav')?.classList.toggle(
+    'hidden',
+    recruiter
+  );
+
+  $('#projects')?.classList.toggle(
+    'hidden',
+    recruiter
+  );
+
+
+  /*
+    The recruiter header should expose
+    only recruiter actions.
+  */
+
+  $('#headerPostJob')?.classList.toggle(
+    'hidden',
+    !recruiter
+  );
+
+
+  if(recruiter&&recruiterVerified){
+
+    $('#opportunitySubtitle').textContent=
+      'You are verified to publish trusted opportunities to matched candidates.';
+
+  }
+
+  else if(recruiter){
+
+    $('#opportunitySubtitle').textContent=
+      'Complete verification to publish opportunities to students.';
+
+  }
+
+  else{
+
+    $('#opportunitySubtitle').textContent=
+      'Matched to your verified skills, interests, and project categories.';
+
+  }
+
+}
+
 
 function showApp(
-    name='Aryan Mehta',
-    role='student'
+  n='Aryan Mehta',
+  role='student'
 ){
 
-    $('#auth')
-        ?.classList
-        .add('hidden');
+  $('#auth')?.classList.add('hidden');
 
-    $('#app')
-        ?.classList
-        .remove('hidden');
+  $('#app')?.classList.remove('hidden');
 
-    accountRole = role;
+  accountRole=role;
 
-    const initials =
-        name
-            .split(/\s+/)
-            .filter(Boolean)
-            .map(word => word[0])
-            .join('')
-            .slice(0,2)
-            .toUpperCase();
 
-    const profileName =
-        $('#profileName');
+  const initials=
+    n
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(x=>x[0])
+      .join('')
+      .slice(0,2)
+      .toUpperCase();
 
-    if(profileName){
 
-        profileName.childNodes[0]
-            .textContent =
-            `${name} `;
+  const studentOverview=
+    $('#studentOverview');
 
-    }
+  const recruiterDashboard=
+    $('#recruiterDashboard');
 
-    if($('#sideName'))
-        $('#sideName').textContent =
-            name;
 
-    if($('#greetingName')){
+  /*
+    Recruiter accounts must never render
+    the student's GitHub activity,
+    LeetCode skill map, or radar chart.
+  */
 
-        $('#greetingName')
-            .textContent =
-            role === 'recruiter'
-                ? 'HIRING TEAM'
-                : name
-                    .split(/\s+/)[0]
-                    .toUpperCase();
+  studentOverview?.classList.toggle(
+    'hidden',
+    role==='recruiter'
+  );
 
-    }
+  recruiterDashboard?.classList.toggle(
+    'hidden',
+    role!=='recruiter'
+  );
 
-    if($('#bigAvatar'))
-        $('#bigAvatar').textContent =
-            initials;
 
-    const miniAvatar =
-        document.querySelector(
-            '.profile-mini .avatar'
-        );
+  const profileName=$('#profileName');
 
-    if(miniAvatar)
-        miniAvatar.textContent =
-            initials;
+  if(
+    profileName &&
+    profileName.childNodes[0]
+  )
+    profileName.childNodes[0].textContent=
+      n+' ';
 
-    const miniRole =
-        document.querySelector(
-            '.profile-mini small'
-        );
 
-    if(miniRole)
-        miniRole.textContent =
-            role === 'recruiter'
-                ? 'Recruiter'
-                : 'Student';
+  if($('#sideName'))
+    $('#sideName').textContent=n;
 
-    if(role === 'recruiter')
-        renderRecruiterPortal();
 
-    updateRecruiterAccess();
+  if($('#greetingName'))
+    $('#greetingName').textContent=
+      role==='recruiter'
+        ?'HIRING TEAM'
+        :n.split(/\s+/)[0].toUpperCase();
 
-    renderProjects();
 
-    renderOpps();
+  if($('#bigAvatar'))
+    $('#bigAvatar').textContent=initials;
 
+
+  document
+    .querySelector('.profile-mini .avatar')
+    ?.replaceChildren(
+      document.createTextNode(initials)
+    );
+
+
+  const miniRole=
+    document.querySelector('.profile-mini small');
+
+
+  if(miniRole)
+    miniRole.textContent=
+      role==='recruiter'
+        ?'Recruiter'
+        :'Student';
+
+
+  $('#overview')?.classList.toggle(
+    'recruiter-mode',
+    role==='recruiter'
+  );
+
+
+  /*
+    Apply all recruiter/student
+    visibility rules in one place.
+  */
+
+  updateRecruiterAccess();
+
+
+  if(role==='recruiter')
+    renderRecruiterPortal();
+
+
+  renderProjects();
+
+  renderOpps();
+
+
+  /*
+    Radar is only a student feature,
+    so render it only when the
+    student overview is visible.
+  */
+
+  if(role==='student')
     requestAnimationFrame(
-        () => {
-
-            renderGithubActivity();
-
-            renderRadarChart();
-
-        }
+      renderRadarChart
     );
 
 }
 
 
-/* =========================================================
-   AUTH EVENTS
-========================================================= */
+$('#createID').onclick=()=>{
 
-$('#createID')?.addEventListener(
-    'click',
-    () => {
+  let n=$('#name').value.trim();
 
-        const name =
-            $('#name')
-                .value
-                .trim();
+  let e=$('#email').value.trim();
 
-        const email =
-            $('#email')
-                .value
-                .trim();
-
-        const role =
-            $('#role')
-                .value
-                .includes('Recruiter')
-                ? 'recruiter'
-                : 'student';
-
-        if(
-            !name ||
-            !email ||
-            !email.includes('@')
-        ){
-
-            toast(
-                'Add your name and a valid email to continue.'
-            );
-
-            return;
-        }
-
-        const id =
-            'KN-' +
-            Math.floor(
-                1000 +
-                Math.random() *
-                9000
-            );
-
-        $('#kidValue')
-            .textContent =
-            id;
-
-        showApp(
-            name,
-            role
-        );
-
-        toast(
-            `Your K.ID ${id} is ready.`
-        );
-
-    }
-);
+  let role=
+    $('#role').value.includes('Recruiter')
+      ?'recruiter'
+      :'student';
 
 
-$('#demoLogin')?.addEventListener(
-    'click',
-    event => {
-
-        event.preventDefault();
-
-        showApp();
-
-    }
-);
+  if(
+    !n||
+    !e||
+    !e.includes('@')
+  )
+    return toast(
+      'Add your name and a valid email to continue.'
+    );
 
 
-/* =========================================================
-   TAB SWITCHING
-========================================================= */
+  let id=
+    'KN-'+
+    Math.floor(
+      1000+
+      Math.random()*9000
+    );
 
-function switchTab(id){
+
+  $('#kidValue').textContent=id;
+
+
+  showApp(n,role);
+
+
+  toast(
+    `Your K.ID ${id} is ready.`
+  );
+
+};
+
+
+$('#demoLogin').onclick=e=>{
+
+  e.preventDefault();
+
+  showApp();
+
+};
+
+
+document
+  .querySelectorAll('[data-tab]')
+  .forEach(e=>e.onclick=()=>{
+
+    const id=e.dataset.tab;
+
+
+    /*
+      Recruiters cannot navigate back
+      into the student Projects tab.
+    */
+
+    if(
+      accountRole==='recruiter' &&
+      id==='projects'
+    )
+      return;
+
 
     document
-        .querySelectorAll('.tab-panel')
-        .forEach(
-            panel =>
-                panel.classList.add('hidden')
-        );
+      .querySelectorAll('.tab-panel')
+      .forEach(
+        p=>p.classList.add('hidden')
+      );
 
-    const target =
-        $('#'+id);
 
-    if(target)
-        target.classList.remove('hidden');
+    $('#'+id)?.classList.remove(
+      'hidden'
+    );
+
 
     document
-        .querySelectorAll('nav a')
-        .forEach(
-            link =>
-                link.classList.toggle(
-                    'active',
-                    link.dataset.tab === id
-                )
-        );
+      .querySelectorAll('nav a')
+      .forEach(
+        a=>
+          a.classList.toggle(
+            'active',
+            a.dataset.tab===id
+          )
+      );
+
 
     window.scrollTo({
-        top:0,
-        behavior:'smooth'
+      top:0,
+      behavior:'smooth'
     });
 
-    requestAnimationFrame(
-        () => {
+});
 
-            renderGithubActivity();
 
-            renderRadarChart();
+$('#openProject').onclick=
+$('#openProject2').onclick=()=>{
 
-        }
+  if(accountRole==='recruiter')
+    return;
+
+  $('#modal').classList.remove(
+    'hidden'
+  );
+
+};
+
+
+$('#closeModal').onclick=()=>
+  $('#modal').classList.add(
+    'hidden'
+  );
+
+
+$('#saveProject').onclick=()=>{
+
+  let n=
+    $('#projectName').value.trim();
+
+  let repo=
+    $('#projectRepo').value.trim();
+
+
+  if(!n)
+    return toast(
+      'Give your project a name first.'
     );
+
+
+  projects.unshift({
+
+    name:n,
+
+    category:
+      $('#projectCategory').value,
+
+    visibility:
+      $('#projectVisibility').value,
+
+    repo:repo,
+
+    desc:
+      'A new project added to this proof-led portfolio.'
+
+  });
+
+
+  renderProjects();
+
+
+  $('#modal').classList.add(
+    'hidden'
+  );
+
+
+  $('#projectName').value='';
+
+  $('#projectRepo').value='';
+
+
+  toast(
+    'Project added to your portfolio.'
+  );
+
+};
+
+
+$('#openJob').onclick=()=>
+  $('#jobModal').classList.remove(
+    'hidden'
+  );
+
+
+$('#closeJobModal').onclick=()=>
+  $('#jobModal').classList.add(
+    'hidden'
+  );
+
+
+$('#saveJob').onclick=()=>{
+
+  let title=
+    $('#jobTitle').value.trim();
+
+  let company=
+    $('#jobCompany').value.trim();
+
+
+  if(!title||!company)
+    return toast(
+      'Add a role title and organization.'
+    );
+
+
+  opportunities.unshift([
+
+    company[0].toUpperCase(),
+
+    company,
+
+    title,
+
+    `${$('#jobLocation').value} · ${$('#jobType').value}`,
+
+    'New'
+
+  ]);
+
+
+  renderOpps();
+
+
+  $('#jobModal').classList.add(
+    'hidden'
+  );
+
+
+  $('#jobTitle').value='';
+
+  $('#jobCompany').value='';
+
+
+  toast(
+    'Opportunity published for matched candidates.'
+  );
+
+};
+
+
+$('#openVerify').onclick=()=>
+  $('#verifyModal').classList.remove(
+    'hidden'
+  );
+
+
+$('#closeVerifyModal').onclick=()=>
+  $('#verifyModal').classList.add(
+    'hidden'
+  );
+
+
+$('#verifyRecruiter').onclick=()=>{
+
+  let company=
+    $('#verifyCompany').value.trim();
+
+  let hires=
+    Number(
+      $('#hireCount').value
+    );
+
+
+  if(
+    !company||
+    hires<100||
+    !$('#attest').checked
+  )
+    return toast(
+      'Confirm a recognized company, 100+ hires, and the attestation.'
+    );
+
+
+  recruiterVerified=true;
+
+
+  $('#verifyModal').classList.add(
+    'hidden'
+  );
+
+
+  updateRecruiterAccess();
+
+
+  toast(
+    'Verified recruiter badge granted. You can now post opportunities.'
+  );
+
+};
+
+
+function cvHTML(){
+
+  let name=
+    $('#profileName')
+      .childNodes[0]
+      .textContent
+      .trim();
+
+
+  let projectList=
+    projects
+      .slice(0,4)
+      .map(
+        p=>
+          `<li>
+            <b>${p.name}</b>
+            — ${p.desc}
+            <em>(${p.category})</em>
+          </li>`
+      )
+      .join('');
+
+
+  return `
+
+<!doctype html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<title>
+  ${name} — CV
+</title>
+
+<style>
+
+body{
+  font-family:Arial,sans-serif;
+  color:#1b2432;
+  max-width:760px;
+  margin:42px auto;
+  line-height:1.5;
+  padding:0 25px
+}
+
+h1{
+  font-size:30px;
+  margin:0;
+  color:#182033
+}
+
+h2{
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:1.2px;
+  color:#6041c9;
+  border-bottom:1px solid #d9ddef;
+  padding-bottom:5px;
+  margin-top:24px
+}
+
+.meta{
+  color:#667085;
+  font-size:13px;
+  margin:5px 0 15px
+}
+
+.tag{
+  display:inline-block;
+  background:#efebff;
+  color:#543bb2;
+  padding:3px 7px;
+  border-radius:10px;
+  font-size:11px;
+  margin:3px
+}
+
+li{
+  margin:7px 0
+}
+
+.stats{
+  display:flex;
+  gap:25px;
+  background:#f5f6fb;
+  padding:12px;
+  border-radius:7px;
+  font-size:12px
+}
+
+.stats b{
+  display:block;
+  font-size:17px;
+  color:#5035aa
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<h1>
+  ${name}
+</h1>
+
+
+<p class="meta">
+  Computer Science Student · Bengaluru, India ·
+  ${accountRole==='recruiter'?'Recruiter':'Candidate'} ·
+  K.ID ${$('#kidValue').textContent}
+</p>
+
+
+<h2>
+  Profile
+</h2>
+
+<p>
+  Proof-led developer with strengths in full-stack development,
+  product thinking, and problem solving. Portfolio includes
+  independently shipped work with linked technical evidence.
+</p>
+
+
+<h2>
+  Technical skills
+</h2>
+
+<span class="tag">
+  JavaScript · Advanced
+</span>
+
+<span class="tag">
+  React · Advanced
+</span>
+
+<span class="tag">
+  Data Structures · Verified
+</span>
+
+<span class="tag">
+  Full-stack development
+</span>
+
+
+<h2>
+  Projects
+</h2>
+
+<ul>
+  ${projectList}
+</ul>
+
+
+<h2>
+  Credentials
+</h2>
+
+<ul>
+
+<li>
+  <b>Meta Front-End Developer</b>
+  — Coursera, May 2026
+</li>
+
+<li>
+  <b>AWS Cloud Practitioner</b>
+  — Amazon Web Services, February 2026
+</li>
+
+</ul>
+
+
+<h2>
+  LeetCode performance
+</h2>
+
+<div class="stats">
+
+<span>
+  <b>247</b>
+  Problems solved
+</span>
+
+<span>
+  <b>1,682</b>
+  Contest rating
+</span>
+
+<span>
+  <b>Top 18%</b>
+  Global ranking
+</span>
+
+<span>
+  <b>118 / 101 / 28</b>
+  Easy / Medium / Hard
+</span>
+
+</div>
+
+
+<h2>
+  GitHub activity
+</h2>
+
+<p>
+  12 repositories · 186 contributions in the last year ·
+  14-day contribution streak
+</p>
+
+
+</body>
+
+</html>
+
+`;
 
 }
 
 
-document
-    .querySelectorAll('[data-tab]')
-    .forEach(
-        element => {
+function previewCV(){
 
-            element.addEventListener(
-                'click',
-                event => {
+  let source=cvHTML();
 
-                    event.preventDefault();
-
-                    switchTab(
-                        element.dataset.tab
-                    );
-
-                }
-            );
-
-        }
-    );
+  let doc=
+    new DOMParser()
+      .parseFromString(
+        source,
+        'text/html'
+      );
 
 
-/* =========================================================
-   PROJECT MODAL
-========================================================= */
-
-function openProjectModal(){
-
-    $('#modal')
-        ?.classList
-        .remove('hidden');
+  $('#cvPreview').innerHTML=
+    doc.body.innerHTML;
 
 }
 
-$('#openProject')
-    ?.addEventListener(
-        'click',
-        openProjectModal
+
+$('#buildCV').onclick=()=>{
+
+  if(accountRole==='recruiter')
+    return;
+
+  previewCV();
+
+  $('#cvModal').classList.remove(
+    'hidden'
+  );
+
+};
+
+
+$('#closeCVModal').onclick=()=>
+  $('#cvModal').classList.add(
+    'hidden'
+  );
+
+
+$('#downloadCV').onclick=()=>{
+
+  let name=
+    $('#profileName')
+      .childNodes[0]
+      .textContent
+      .trim()
+      .replace(
+        /[^a-z0-9]/gi,
+        '_'
+      );
+
+
+  let file=
+    new Blob(
+      [cvHTML()],
+      {
+        type:'application/msword'
+      }
     );
 
-$('#openProject2')
-    ?.addEventListener(
-        'click',
-        openProjectModal
+
+  let url=
+    URL.createObjectURL(file);
+
+
+  let a=
+    document.createElement('a');
+
+
+  a.href=url;
+
+  a.download=
+    `${name}_Kaushala_CV.doc`;
+
+
+  a.click();
+
+
+  URL.revokeObjectURL(url);
+
+
+  toast(
+    'Your CV document is downloading.'
+  );
+
+};
+
+
+$('#printCV').onclick=()=>{
+
+  let win=
+    window.open(
+      '',
+      '_blank'
     );
 
-$('#closeModal')
-    ?.addEventListener(
-        'click',
-        () =>
-            $('#modal')
-                .classList
-                .add('hidden')
+
+  if(!win)
+    return toast(
+      'Allow pop-ups to print your CV.'
     );
+
+
+  win.document.write(
+    cvHTML()
+  );
+
+
+  win.document.close();
+
+  win.focus();
+
+
+  setTimeout(
+    ()=>win.print(),
+    250
+  );
+
+};
 
 
 /* =========================================================
-   SAVE PROJECT
+   LEETCODE RADAR — interactive student-only chart
 ========================================================= */
 
-$('#saveProject')
-    ?.addEventListener(
-        'click',
-        () => {
+const radarSkills=[
 
-            const name =
-                $('#projectName')
-                    .value
-                    .trim();
+  {
+    name:'Arrays',
+    score:84
+  },
 
-            if(!name){
+  {
+    name:'Strings',
+    score:72
+  },
 
-                toast(
-                    'Give your project a name first.'
-                );
+  {
+    name:'Hashing',
+    score:68
+  },
 
-                return;
-            }
+  {
+    name:'Trees',
+    score:76
+  },
 
-            projects.unshift({
+  {
+    name:'Dynamic programming',
+    score:63
+  },
 
-                name,
+  {
+    name:'Graphs',
+    score:79
+  }
 
-                category:
-                    $('#projectCategory')
-                        .value,
+];
 
-                visibility:
-                    $('#projectVisibility')
-                        .value,
 
-                repo:
-                    $('#projectRepo')
-                        .value
-                        .trim(),
+function radarPoint(index,score){
 
-                desc:
-                    'A new project added to this proof-led portfolio.'
+  const cx=180;
 
-            });
+  const cy=105;
 
-            renderProjects();
+  const radius=80;
 
-            $('#modal')
-                .classList
-                .add('hidden');
-
-            $('#projectName')
-                .value = '';
-
-            $('#projectRepo')
-                .value = '';
-
-            toast(
-                'Project added to your portfolio.'
-            );
-
-        }
+  const angle=
+    -Math.PI/2+
+    (
+      index*
+      (
+        Math.PI*2/
+        radarSkills.length
+      )
     );
 
 
-/* =========================================================
-   JOB MODAL
-========================================================= */
-
-$('#openJob')
-    ?.addEventListener(
-        'click',
-        () =>
-            $('#jobModal')
-                .classList
-                .remove('hidden')
-    );
-
-$('#closeJobModal')
-    ?.addEventListener(
-        'click',
-        () =>
-            $('#jobModal')
-                .classList
-                .add('hidden')
+  const r=
+    radius*
+    (
+      score/100
     );
 
 
-/* =========================================================
-   SAVE JOB
-========================================================= */
+  return {
 
-$('#saveJob')
-    ?.addEventListener(
-        'click',
-        () => {
+    x:
+      cx+
+      Math.cos(angle)*r,
 
-            const title =
-                $('#jobTitle')
-                    .value
-                    .trim();
+    y:
+      cy+
+      Math.sin(angle)*r
 
-            const company =
-                $('#jobCompany')
-                    .value
-                    .trim();
+  };
 
-            if(
-                !title ||
-                !company
-            ){
-
-                toast(
-                    'Add a role title and organization.'
-                );
-
-                return;
-            }
-
-            opportunities.unshift({
-
-                initial:
-                    company[0]
-                        .toUpperCase(),
-
-                company,
-
-                title,
-
-                type:
-                    'internship',
-
-                model:
-                    $('#jobType')
-                        .value === 'Project-based'
-                        ? 'project'
-                        : 'experience',
-
-                location:
-                    $('#jobLocation')
-                        .value,
-
-                category:
-                    $('#jobCategory')
-                        .value,
-
-                match:
-                    'New'
-
-            });
-
-            renderOpps();
-
-            $('#jobModal')
-                .classList
-                .add('hidden');
-
-            $('#jobTitle').value='';
-            $('#jobCompany').value='';
-
-            toast(
-                'Opportunity published for matched candidates.'
-            );
-
-        }
-    );
+}
 
 
-/* =========================================================
-   RECRUITER VERIFICATION
-========================================================= */
+function showRadarSkill(index){
 
-$('#openVerify')
-    ?.addEventListener(
-        'click',
-        () =>
-            $('#verifyModal')
-                .classList
-                .remove('hidden')
-    );
-
-$('#closeVerifyModal')
-    ?.addEventListener(
-        'click',
-        () =>
-            $('#verifyModal')
-                .classList
-                .add('hidden')
-    );
-
-$('#verifyRecruiter')
-    ?.addEventListener(
-        'click',
-        () => {
-
-            const company =
-                $('#verifyCompany')
-                    .value
-                    .trim();
-
-            const hires =
-                Number(
-                    $('#hireCount')
-                        .value
-                );
-
-            const attested =
-                $('#attest')
-                    .checked;
-
-            if(
-                !company ||
-                hires < 100 ||
-                !attested
-            ){
-
-                toast(
-                    'Confirm a recognized company, 100+ hires, and the attestation.'
-                );
-
-                return;
-            }
-
-            recruiterVerified = true;
-
-            $('#verifyModal')
-                .classList
-                .add('hidden');
-
-            updateRecruiterAccess();
-
-            toast(
-                'Verified recruiter badge granted.'
-            );
-
-        }
-    );
+  const skill=
+    radarSkills[index];
 
 
-/* =========================================================
-   OPPORTUNITY FILTERS
-========================================================= */
+  if(!skill)
+    return;
 
-document
+
+  const insight=
+    $('#radarInsight');
+
+
+  if(insight)
+    insight.textContent=
+      `${skill.name} · ${skill.score} / 100`;
+
+
+  document
     .querySelectorAll(
-        '.filters button'
+      '.radar-list button'
     )
     .forEach(
-        button => {
-
-            button.addEventListener(
-                'click',
-                () => {
-
-                    document
-                        .querySelectorAll(
-                            '.filters button'
-                        )
-                        .forEach(
-                            item =>
-                                item.classList.remove(
-                                    'selected'
-                                )
-                        );
-
-                    button.classList.add(
-                        'selected'
-                    );
-
-                    renderOpps(
-                        button.dataset.filter ||
-                        'all'
-                    );
-
-                }
-            );
-
-        }
+      (button,i)=>{
+        button.classList.toggle(
+          'active',
+          i===index
+        );
+      }
     );
 
 
-/* =========================================================
-   GITHUB CONTRIBUTION SYSTEM
-========================================================= */
+  document
+    .querySelectorAll(
+      '.radar-nodes circle'
+    )
+    .forEach(
+      (node,i)=>{
+        node.classList.toggle(
+          'active',
+          i===index
+        );
+      }
+    );
 
-const githubMonths = [
 
+  const node=
+    document
+      .querySelectorAll(
+        '.radar-nodes circle'
+      )[index];
+
+
+  const wrap=
+    $('.radar-wrap');
+
+
+  if(!node||!wrap)
+    return;
+
+
+  let tooltip=
+    $('#radarTooltip');
+
+
+  if(!tooltip){
+
+    tooltip=
+      document.createElement(
+        'div'
+      );
+
+    tooltip.id=
+      'radarTooltip';
+
+    tooltip.className=
+      'radar-tooltip';
+
+    wrap.appendChild(
+      tooltip
+    );
+
+  }
+
+
+  const nodeRect=
+    node.getBoundingClientRect();
+
+
+  const wrapRect=
+    wrap.getBoundingClientRect();
+
+
+  tooltip.innerHTML=`
+
+    <b>
+      ${skill.name}
+    </b>
+
+    <span>
+      ${skill.score} / 100
+    </span>
+
+  `;
+
+
+  tooltip.style.left=
+    `${
+      nodeRect.left-
+      wrapRect.left+
+      nodeRect.width/2
+    }px`;
+
+
+  tooltip.style.top=
+    `${
+      nodeRect.top-
+      wrapRect.top-
+      8
+    }px`;
+
+
+  tooltip.classList.add(
+    'visible'
+  );
+
+}
+
+
+function renderRadarChart(){
+
+  const polygon=
+    $('.radar-data');
+
+
+  const nodes=
+    document.querySelectorAll(
+      '.radar-nodes circle'
+    );
+
+
+  if(
+    !polygon||
+    nodes.length!==radarSkills.length
+  )
+    return;
+
+
+  polygon.setAttribute(
+
+    'points',
+
+    radarSkills
+      .map(
+        (skill,index)=>{
+
+          const point=
+            radarPoint(
+              index,
+              skill.score
+            );
+
+
+          return `
+            ${point.x.toFixed(1)},
+            ${point.y.toFixed(1)}
+          `;
+
+        }
+      )
+      .join(' ')
+
+  );
+
+
+  nodes.forEach(
+    (node,index)=>{
+
+      const point=
+        radarPoint(
+          index,
+          radarSkills[index].score
+        );
+
+
+      node.setAttribute(
+        'cx',
+        point.x.toFixed(1)
+      );
+
+
+      node.setAttribute(
+        'cy',
+        point.y.toFixed(1)
+      );
+
+
+      node.dataset.skill=
+        radarSkills[index].name;
+
+
+      node.dataset.score=
+        radarSkills[index].score;
+
+
+      node.setAttribute(
+        'tabindex',
+        '0'
+      );
+
+
+      node.setAttribute(
+        'role',
+        'button'
+      );
+
+
+      node.setAttribute(
+        'aria-label',
+        `${radarSkills[index].name}: ${radarSkills[index].score} out of 100`
+      );
+
+
+      node.onclick=
+        ()=>showRadarSkill(index);
+
+
+      node.onmouseenter=
+        ()=>showRadarSkill(index);
+
+
+      node.onfocus=
+        ()=>showRadarSkill(index);
+
+
+      node.onkeydown=e=>{
+
+        if(
+          e.key==='Enter'||
+          e.key===' '
+        ){
+
+          e.preventDefault();
+
+          showRadarSkill(index);
+
+        }
+
+      };
+
+    }
+  );
+
+
+  document
+    .querySelectorAll(
+      '.radar-list button'
+    )
+    .forEach(
+      (button,index)=>{
+
+        button.onclick=
+          ()=>showRadarSkill(index);
+
+        button.onmouseenter=
+          ()=>showRadarSkill(index);
+
+        button.onfocus=
+          ()=>showRadarSkill(index);
+
+      }
+    );
+
+
+  showRadarSkill(0);
+
+}
+
+
+// The script is loaded at the end of <body>,
+// but this also makes the chart safe if the
+// file is moved into <head> later.
+
+if(
+  document.readyState==='loading'
+){
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    renderRadarChart,
+    {once:true}
+  );
+
+}
+
+else{
+
+  renderRadarChart();
+
+}
+
+
+/* ===== Natural GitHub contribution calendar ===== */
+
+(() => {
+
+  const months=[
     'January',
     'February',
     'March',
@@ -1253,11 +2281,10 @@ const githubMonths = [
     'October',
     'November',
     'December'
+  ];
 
-];
 
-const githubShortMonths = [
-
+  const shortMonths=[
     'Jan',
     'Feb',
     'Mar',
@@ -1270,1907 +2297,1059 @@ const githubShortMonths = [
     'Oct',
     'Nov',
     'Dec'
+  ];
 
-];
 
-
-const githubState = {
-
+  const state={
     view:'year',
-
     year:2026,
-
     month:8
-
-};
-
-
-/* ---------------------------------------------------------
-   SEEDED VALUE
---------------------------------------------------------- */
-
-function githubSeed(
-    year,
-    month,
-    day
-){
-
-    const value =
-        Math.sin(
-            year * 12.9898 +
-            month * 78.233 +
-            day * 37.719
-        ) *
-        43758.5453;
-
-    return value -
-        Math.floor(value);
-
-}
+  };
 
 
-/* ---------------------------------------------------------
-   CONTRIBUTION COUNT
---------------------------------------------------------- */
+  const seed=(y,m,d)=>{
 
-function githubContributionCount(
-    year,
-    month,
-    day
-){
-
-    const date =
-        new Date(
-            year,
-            month,
-            day
-        );
-
-    if(
-        date >
-        new Date()
-    )
-        return 0;
-
-    const weekday =
-        date.getDay();
-
-    const seedA =
-        githubSeed(
-            year,
-            month + 1,
-            day
-        );
-
-    const seedB =
-        githubSeed(
-            year + 19,
-            month + 7,
-            day + 13
-        );
-
-    /*
-     * Weekdays naturally receive
-     * more activity than weekends.
-     */
-
-    const probability =
-        weekday === 0 ||
-        weekday === 6
-            ? 0.30
-            : 0.45;
-
-    if(seedA > probability)
-        return 0;
-
-    if(seedB < 0.48)
-        return 1;
-
-    if(seedB < 0.74)
-        return 2;
-
-    if(seedB < 0.90)
-        return 3;
-
-    if(seedB < 0.975)
-        return 5;
-
-    return 8;
-
-}
+    const x=
+      Math.sin(
+        y*12.9898+
+        m*78.233+
+        d*37.719
+      )*
+      43758.5453;
 
 
-/* ---------------------------------------------------------
-   CONTRIBUTION LEVEL
---------------------------------------------------------- */
+    return x-
+      Math.floor(x);
 
-function githubLevel(count){
-
-    if(count <= 0)
-        return 0;
-
-    if(count <= 1)
-        return 1;
-
-    if(count <= 2)
-        return 2;
-
-    if(count <= 4)
-        return 3;
-
-    return 4;
-
-}
+  };
 
 
-/* ---------------------------------------------------------
-   FORMAT DATE
---------------------------------------------------------- */
+  const isFuture=d=>{
 
-function githubFormatDate(date){
+    const now=
+      new Date();
 
-    return date.toLocaleDateString(
-        'en-IN',
-        {
-            day:'numeric',
-            month:'short',
-            year:'numeric'
-        }
+
+    now.setHours(
+      23,
+      59,
+      59,
+      999
     );
 
-}
+
+    return d>now;
+
+  };
 
 
-/* ---------------------------------------------------------
-   YEAR DATA
---------------------------------------------------------- */
+  const count=(y,m,d)=>{
 
-function getGithubYearData(year){
+    const w=
+      new Date(
+        y,
+        m,
+        d
+      ).getDay();
 
-    const result = [];
 
-    const start =
-        new Date(
-            year,
-            0,
-            1
-        );
+    const a=
+      seed(
+        y,
+        m+1,
+        d
+      );
 
-    const end =
-        new Date(
-            year,
-            11,
-            31
-        );
+
+    const b=
+      seed(
+        y+19,
+        m+7,
+        d+13
+      );
+
+
+    const chance=
+      (
+        w===0||
+        w===6
+      )
+        ? .28
+        : .43;
+
+
+    if(a>chance)
+      return 0;
+
+
+    if(b<.50)
+      return 1;
+
+
+    if(b<.78)
+      return 2;
+
+
+    if(b<.93)
+      return 3;
+
+
+    if(b<.985)
+      return 4;
+
+
+    return 6;
+
+  };
+
+
+  const level=n=>
+    n<=0
+      ?0
+      :n===1
+        ?1
+        :n===2
+          ?2
+          :n<=4
+            ?3
+            :4;
+
+
+  const fmt=d=>
+    d.toLocaleDateString(
+      'en-IN',
+      {
+        day:'numeric',
+        month:'short',
+        year:'numeric'
+      }
+    );
+
+
+  const yearDays=y=>{
+
+    const out=[];
+
 
     for(
-        let date =
-            new Date(start);
+      let d=
+        new Date(
+          y,
+          0,
+          1
+        );
 
-        date <= end;
+      d<=
+        new Date(
+          y,
+          11,
+          31
+        );
 
-        date.setDate(
-            date.getDate()+1
-        )
+      d.setDate(
+        d.getDate()+1
+      )
     ){
 
-        const current =
-            new Date(date);
+      const x=
+        new Date(d);
 
-        result.push({
 
-            date:current,
+      out.push({
 
-            count:
-                githubContributionCount(
-                    year,
-                    current.getMonth(),
-                    current.getDate()
-                )
+        date:x,
 
-        });
+        count:
+          isFuture(x)
+            ?0
+            :count(
+              y,
+              x.getMonth(),
+              x.getDate()
+            )
+
+      });
 
     }
 
-    return result;
 
-}
+    return out;
+
+  };
 
 
-/* ---------------------------------------------------------
-   MONTH DATA
---------------------------------------------------------- */
+  const monthDays=(y,m)=>{
 
-function getGithubMonthData(
-    year,
-    month
-){
+    const out=[];
 
-    const result = [];
 
-    const lastDay =
+    for(
+      let d=1;
+
+      d<=
         new Date(
-            year,
-            month + 1,
-            0
+          y,
+          m+1,
+          0
         ).getDate();
 
-    for(
-        let day=1;
-
-        day<=lastDay;
-
-        day++
+      d++
     ){
 
-        const date =
-            new Date(
-                year,
-                month,
-                day
-            );
+      const x=
+        new Date(
+          y,
+          m,
+          d
+        );
 
-        result.push({
 
-            date,
+      out.push({
 
-            count:
-                githubContributionCount(
-                    year,
-                    month,
-                    day
-                )
+        date:x,
 
-        });
+        count:
+          isFuture(x)
+            ?0
+            :count(
+              y,
+              m,
+              d
+            )
+
+      });
 
     }
 
-    return result;
 
-}
+    return out;
+
+  };
 
 
-/* ---------------------------------------------------------
-   STATS
---------------------------------------------------------- */
-
-function getGithubStats(days){
+  const stats=days=>{
 
     let total=0;
 
-    let running=0;
+    let run=0;
 
     let current=0;
 
     let best=0;
 
+
     days.forEach(
-        item => {
+      x=>{
 
-            total += item.count;
+        total+=x.count;
 
-            if(item.count > 0){
 
-                running++;
+        if(x.count){
 
-                best =
-                    Math.max(
-                        best,
-                        running
-                    );
+          run++;
 
-            }else{
-
-                running=0;
-
-            }
+          best=
+            Math.max(
+              best,
+              run
+            );
 
         }
+
+        else{
+
+          run=0;
+
+        }
+
+      }
     );
 
 
     for(
-        let index =
-            days.length-1;
+      let i=
+        days.length-1;
 
-        index >= 0 &&
-        days[index].count > 0;
+      i>=0&&days[i].count;
 
-        index--
-    ){
-
-        current++;
-
-    }
+      i--
+    )
+      current++;
 
 
     return {
-
-        total,
-
-        current,
-
-        best
-
+      total,
+      current,
+      best
     };
 
-}
+  };
 
 
-/* ---------------------------------------------------------
-   CREATE CONTRIBUTION CELL
---------------------------------------------------------- */
+  const hideTip=()=>
+    document
+      .querySelector(
+        '#githubTooltip'
+      )
+      ?.classList.remove(
+        'visible'
+      );
 
-function createGithubCell(item){
+
+  const showTip=b=>{
+
+    const t=
+      document.querySelector(
+        '#githubTooltip'
+      );
+
+
+    const s=
+      document.querySelector(
+        '.github-heatmap-shell'
+      );
+
+
+    if(!t||!s)
+      return;
+
+
+    const r=
+      b.getBoundingClientRect();
+
+
+    const sr=
+      s.getBoundingClientRect();
+
+
+    const d=
+      new Date(
+        b.dataset.date
+      );
+
+
+    const n=
+      Number(
+        b.dataset.count
+      );
+
+
+    t.innerHTML=`
+
+      <strong>
+        ${n}
+        contribution${n===1?'':'s'}
+      </strong>
+
+      <span>
+        ${fmt(d)}
+      </span>
+
+    `;
+
+
+    t.style.left=
+      `${
+        r.left-
+        sr.left+
+        r.width/2
+      }px`;
+
+
+    t.style.top=
+      `${
+        r.top-
+        sr.top-
+        7
+      }px`;
+
+
+    t.classList.add(
+      'visible'
+    );
+
+  };
+
+
+  const makeCell=item=>{
+
+    const b=
+      document.createElement(
+        'button'
+      );
+
+
+    b.type='button';
+
+    b.className=
+      'github-day';
+
 
     if(!item){
 
-        const empty =
-            document.createElement(
-                'span'
-            );
+      b.classList.add(
+        'empty'
+      );
 
-        empty.className =
-            'github-day empty';
+      b.disabled=true;
 
-        return empty;
+      return b;
 
     }
 
 
-    const cell =
-        document.createElement(
-            'button'
-        );
-
-    cell.type =
-        'button';
-
-    cell.className =
-        `github-day level-${githubLevel(item.count)}`;
-
-    cell.dataset.count =
-        item.count;
-
-    cell.dataset.date =
-        item.date.toISOString();
-
-    cell.setAttribute(
-        'aria-label',
-        `${item.count} contribution${
-            item.count === 1
-                ? ''
-                : 's'
-        } on ${githubFormatDate(item.date)}`
-    );
-
-    cell.title =
-        `${item.count} contribution${
-            item.count === 1
-                ? ''
-                : 's'
-        } on ${githubFormatDate(item.date)}`;
-
-
-    cell.addEventListener(
-        'mouseenter',
-        () =>
-            showGithubTooltip(cell)
-    );
-
-    cell.addEventListener(
-        'focus',
-        () =>
-            showGithubTooltip(cell)
-    );
-
-    cell.addEventListener(
-        'mouseleave',
-        hideGithubTooltip
-    );
-
-    cell.addEventListener(
-        'blur',
-        hideGithubTooltip
+    b.classList.add(
+      'level-'+
+      level(item.count)
     );
 
 
-    return cell;
+    b.dataset.count=
+      item.count;
 
-}
+
+    b.dataset.date=
+      item.date.toISOString();
 
 
-/* ---------------------------------------------------------
-   TOOLTIP
---------------------------------------------------------- */
+    b.setAttribute(
+      'aria-label',
+      `${item.count} contribution${item.count===1?'':'s'} on ${fmt(item.date)}`
+    );
 
-function showGithubTooltip(cell){
 
-    const tooltip =
-        $('#githubTooltip');
+    b.title=
+      `${item.count} contribution${item.count===1?'':'s'} on ${fmt(item.date)}`;
 
-    const container =
-        $('.github-profile');
+
+    b.addEventListener(
+      'mouseenter',
+      ()=>showTip(b)
+    );
+
+
+    b.addEventListener(
+      'focus',
+      ()=>showTip(b)
+    );
+
+
+    b.addEventListener(
+      'mouseleave',
+      hideTip
+    );
+
+
+    b.addEventListener(
+      'blur',
+      hideTip
+    );
+
+
+    return b;
+
+  };
+
+
+  const render=()=>{
+
+    const heat=
+      document.querySelector(
+        '#githubHeatmap'
+      );
+
+
+    const labels=
+      document.querySelector(
+        '#githubMonthLabels'
+      );
+
+
+    const ys=
+      document.querySelector(
+        '#githubYear'
+      );
+
+
+    const ms=
+      document.querySelector(
+        '#githubMonth'
+      );
+
+
+    const summary=
+      document.querySelector(
+        '#githubSummary'
+      );
+
+
+    const numbers=
+      document.querySelector(
+        '#githubNumbers'
+      );
+
 
     if(
-        !tooltip ||
-        !container
+      !heat||
+      !labels||
+      !ys||
+      !ms
     )
-        return;
+      return;
 
-    const cellRect =
-        cell.getBoundingClientRect();
 
-    const containerRect =
-        container.getBoundingClientRect();
+    state.year=
+      Number(
+        ys.value
+      )||
+      2026;
 
-    const date =
-        new Date(
-            cell.dataset.date
-        );
 
-    const count =
-        Number(
-            cell.dataset.count
-        );
+    state.month=
+      Number(
+        ms.value
+      )||
+      0;
 
-    tooltip.innerHTML = `
 
-        <strong>
-            ${count}
-            contribution${count === 1 ? '' : 's'}
-        </strong>
+    const isMonth=
+      state.view==='month';
 
-        <span>
-            ${githubFormatDate(date)}
-        </span>
 
-    `;
-
-    tooltip.style.left =
-        `${
-            cellRect.left -
-            containerRect.left +
-            cellRect.width / 2
-        }px`;
-
-    tooltip.style.top =
-        `${
-            cellRect.top -
-            containerRect.top
-        }px`;
-
-    tooltip.classList.add(
-        'visible'
+    ys.classList.remove(
+      'hidden'
     );
 
-}
+
+    ms.classList.toggle(
+      'hidden',
+      !isMonth
+    );
 
 
-function hideGithubTooltip(){
+    document
+      .querySelectorAll(
+        '.github-view'
+      )
+      .forEach(
+        b=>
+          b.classList.toggle(
+            'active',
+            b.dataset.githubView===
+              state.view
+          )
+      );
 
-    $('#githubTooltip')
-        ?.classList
-        .remove('visible');
 
-}
+    const days=
+      isMonth
+        ?monthDays(
+          state.year,
+          state.month
+        )
+        :yearDays(
+          state.year
+        );
 
 
-/* ---------------------------------------------------------
-   MONTH LABELS
---------------------------------------------------------- */
-
-function renderGithubMonthLabels(
-    year,
-    firstDayOffset,
-    weeks
-){
-
-    const labels =
-        $('#githubMonthLabels');
-
-    if(!labels)
-        return;
+    heat.innerHTML='';
 
     labels.innerHTML='';
 
-    labels.style.setProperty(
+
+    if(isMonth){
+
+      heat.className=
+        'heatmap github-month-view';
+
+
+      labels.className=
+        'github-month-labels github-month-title';
+
+
+      const title=
+        document.createElement(
+          'span'
+        );
+
+
+      title.textContent=
+        `${months[state.month]} ${state.year}`;
+
+
+      labels.appendChild(
+        title
+      );
+
+
+      const off=
+        days[0].date.getDay();
+
+
+      const weeks=
+        Math.ceil(
+          (
+            off+
+            days.length
+          )/7
+        );
+
+
+      heat.style.setProperty(
         '--github-weeks',
         weeks
-    );
+      );
 
 
-    let lastColumn =
-        -2;
+      for(
+        let w=0;
+        w<weeks;
+        w++
+      ){
+
+        for(
+          let r=0;
+          r<7;
+          r++
+        ){
+
+          const i=
+            w*7+
+            r-
+            off;
 
 
-    for(
-        let month=0;
+          heat.appendChild(
+            makeCell(
+              days[i]||
+              null
+            )
+          );
 
-        month<12;
+        }
 
-        month++
-    ){
+      }
 
-        const date =
-            new Date(
-                year,
-                month,
-                1
-            );
+    }
 
-        const dayOfYear =
-            Math.floor(
+
+    else{
+
+      heat.className=
+        'heatmap github-year-view';
+
+
+      labels.className=
+        'github-month-labels';
+
+
+      const first=
+        new Date(
+          state.year,
+          0,
+          1
+        );
+
+
+      const off=
+        first.getDay();
+
+
+      const weeks=
+        Math.ceil(
+          (
+            off+
+            days.length
+          )/7
+        );
+
+
+      heat.style.setProperty(
+        '--github-weeks',
+        weeks
+      );
+
+
+      labels.style.setProperty(
+        '--github-weeks',
+        weeks
+      );
+
+
+      for(
+        let w=0;
+        w<weeks;
+        w++
+      ){
+
+        for(
+          let r=0;
+          r<7;
+          r++
+        ){
+
+          const i=
+            w*7+
+            r-
+            off;
+
+
+          heat.appendChild(
+            makeCell(
+              days[i]||
+              null
+            )
+          );
+
+        }
+
+      }
+
+
+      let last=-2;
+
+
+      for(
+        let m=0;
+        m<12;
+        m++
+      ){
+
+        const date=
+          new Date(
+            state.year,
+            m,
+            1
+          );
+
+
+        const col=
+          Math.floor(
+            (
+              Math.floor(
                 (
-                    date -
-                    new Date(
-                        year,
-                        0,
-                        1
-                    )
-                ) /
+                  date-
+                  first
+                )/
                 86400000
-            );
-
-        const column =
-            Math.floor(
-                (
-                    dayOfYear +
-                    firstDayOffset
-                ) /
-                7
-            );
+              )+
+              off
+            )/7
+          );
 
 
         if(
-            column <=
-            lastColumn + 1
+          col<=last+1
         )
-            continue;
+          continue;
 
 
-        const label =
-            document.createElement(
-                'span'
-            );
+        const l=
+          document.createElement(
+            'span'
+          );
 
-        label.textContent =
-            githubShortMonths[month];
 
-        label.style.gridColumn =
-            `${column + 1}`;
+        l.textContent=
+          shortMonths[m];
+
+
+        l.style.gridColumn=
+          col+1;
+
 
         labels.appendChild(
-            label
+          l
         );
 
-        lastColumn =
-            column;
+
+        last=col;
+
+      }
 
     }
 
-}
+
+    const st=
+      stats(days);
 
 
-/* ---------------------------------------------------------
-   YEAR VIEW
---------------------------------------------------------- */
-
-function renderGithubYear(){
-
-    const heatmap =
-        $('#githubHeatmap');
-
-    if(!heatmap)
-        return;
+    if(summary)
+      summary.textContent=
+        `${st.total} contributions in ${
+          isMonth
+            ?months[state.month]+' '
+            :''
+        }${state.year}`;
 
 
-    const year =
-        Number(
-            $('#githubYear')?.value ||
-            githubState.year
-        );
+    if(numbers)
+      numbers.innerHTML=`
 
-    githubState.year =
-        year;
+        <span>
+          <b>12</b>
+          repositories
+        </span>
 
+        <span>
+          <b>${st.total}</b>
+          contributions
+        </span>
 
-    const days =
-        getGithubYearData(
-            year
-        );
+        <span>
+          <b>${st.current}</b>
+          day streak
+        </span>
 
+      `;
 
-    const firstDate =
-        new Date(
-            year,
-            0,
-            1
-        );
-
-    const firstDayOffset =
-        firstDate.getDay();
+  };
 
 
-    const weeks =
-        Math.ceil(
-            (
-                firstDayOffset +
-                days.length
-            ) /
-            7
-        );
+  document
+    .querySelectorAll(
+      '.github-view'
+    )
+    .forEach(
+      b=>
+        b.addEventListener(
+          'click',
+          ()=>{
+            state.view=
+              b.dataset.githubView===
+              'month'
+                ?'month'
+                :'year';
 
+            render();
 
-    heatmap.className =
-        'heatmap github-year-view';
-
-    heatmap.style.setProperty(
-        '--github-weeks',
-        weeks
+          }
+        )
     );
 
 
-    renderGithubMonthLabels(
-        year,
-        firstDayOffset,
-        weeks
+  document
+    .querySelector(
+      '#githubYear'
+    )
+    ?.addEventListener(
+      'change',
+      render
     );
 
 
-    heatmap.innerHTML='';
+  document
+    .querySelector(
+      '#githubMonth'
+    )
+    ?.addEventListener(
+      'change',
+      render
+    );
+
+
+  render();
+
+})();
+
+
+/* =========================================================
+   LIGHT / DARK MODE
+   ========================================================= */
+
+(() => {
+
+  const root = document.documentElement;
+
+  /*
+    Get saved theme.
+    If nothing is saved, follow the system preference.
+  */
+  const savedTheme = localStorage.getItem('kaushala-theme');
+
+  const systemDark =
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  let currentTheme =
+    savedTheme ||
+    (systemDark ? 'dark' : 'light');
+
+
+  /*
+    Apply theme to the entire document.
+  */
+  function applyTheme(theme) {
+
+    currentTheme = theme;
+
+    root.setAttribute(
+      'data-theme',
+      theme
+    );
 
 
     /*
-     * CSS grid is row-first visually.
-     * We deliberately insert week-by-week
-     * so each column represents one week.
-     */
+      Find the button every time instead of
+      storing the element once.
 
-    for(
-        let week=0;
+      This makes it work even if the header
+      is recreated dynamically.
+    */
+    const toggle =
+      document.querySelector('#themeToggle');
 
-        week<weeks;
 
-        week++
-    ){
+    if (!toggle) return;
 
-        for(
-            let weekday=0;
 
-            weekday<7;
+    const icon =
+      toggle.querySelector('.theme-icon');
 
-            weekday++
-        ){
+    const label =
+      toggle.querySelector('.theme-label');
 
-            const index =
-                week * 7 +
-                weekday -
-                firstDayOffset;
 
-            heatmap.appendChild(
-                createGithubCell(
-                    days[index] ||
-                    null
-                )
-            );
+    const isDark =
+      theme === 'dark';
 
-        }
+
+    if (icon) {
+
+      icon.textContent =
+        isDark ? '☀' : '☾';
 
     }
 
 
-    updateGithubSummary(
-        days,
-        year
-    );
+    if (label) {
 
-}
+      label.textContent =
+        isDark ? 'Light' : 'Dark';
 
-
-/* ---------------------------------------------------------
-   MONTH VIEW
---------------------------------------------------------- */
-
-function renderGithubMonth(){
-
-    const heatmap =
-        $('#githubHeatmap');
-
-    const labels =
-        $('#githubMonthLabels');
-
-    if(!heatmap)
-        return;
+    }
 
 
-    const year =
-        Number(
-            $('#githubYear')?.value ||
-            githubState.year
-        );
-
-    const month =
-        Number(
-            $('#githubMonth')?.value ??
-            githubState.month
-        );
-
-
-    githubState.year =
-        year;
-
-    githubState.month =
-        month;
-
-
-    const days =
-        getGithubMonthData(
-            year,
-            month
-        );
-
-
-    const firstDate =
-        days[0].date;
-
-    const firstDayOffset =
-        firstDate.getDay();
-
-
-    const weeks =
-        Math.ceil(
-            (
-                firstDayOffset +
-                days.length
-            ) /
-            7
-        );
-
-
-    heatmap.className =
-        'heatmap github-month-view';
-
-    heatmap.style.setProperty(
-        '--github-weeks',
-        weeks
+    toggle.setAttribute(
+      'aria-label',
+      isDark
+        ? 'Switch to light mode'
+        : 'Switch to dark mode'
     );
 
 
-    if(labels){
-
-        labels.innerHTML='';
-
-        const title =
-            document.createElement(
-                'span'
-            );
-
-        title.textContent =
-            `${githubMonths[month]} ${year}`;
-
-        title.style.gridColumn =
-            '1 / -1';
-
-        labels.appendChild(
-            title
-        );
-
-    }
-
-
-    heatmap.innerHTML='';
-
-
-    for(
-        let week=0;
-
-        week<weeks;
-
-        week++
-    ){
-
-        for(
-            let weekday=0;
-
-            weekday<7;
-
-            weekday++
-        ){
-
-            const index =
-                week * 7 +
-                weekday -
-                firstDayOffset;
-
-            heatmap.appendChild(
-                createGithubCell(
-                    days[index] ||
-                    null
-                )
-            );
-
-        }
-
-    }
-
-
-    updateGithubSummary(
-        days,
-        year,
-        month
-    );
-
-}
-
-
-/* ---------------------------------------------------------
-   SUMMARY
---------------------------------------------------------- */
-
-function updateGithubSummary(
-    days,
-    year,
-    month=null
-){
-
-    const stats =
-        getGithubStats(
-            days
-        );
-
-
-    const summary =
-        $('#githubSummary');
-
-    if(summary){
-
-        summary.textContent =
-            month === null
-                ? `${stats.total} contributions in ${year}`
-                : `${stats.total} contributions in ${githubMonths[month]} ${year}`;
-
-    }
-
-
-    const numbers =
-        $('#githubNumbers');
-
-    if(numbers){
-
-        numbers.innerHTML = `
-
-            <span>
-
-                <b>
-                    12
-                </b>
-
-                repositories
-
-            </span>
-
-            <span>
-
-                <b>
-                    ${stats.total}
-                </b>
-
-                contributions
-
-            </span>
-
-            <span>
-
-                <b>
-                    ${stats.current}
-                </b>
-
-                day streak
-
-            </span>
-
-        `;
-
-    }
-
-}
-
-
-/* ---------------------------------------------------------
-   MAIN GITHUB RENDER
---------------------------------------------------------- */
-
-function renderGithubActivity(){
-
-    const heatmap =
-        $('#githubHeatmap');
-
-    if(!heatmap)
-        return;
-
-
-    const yearSelect =
-        $('#githubYear');
-
-    const monthSelect =
-        $('#githubMonth');
-
-
-    if(
-        yearSelect &&
-        yearSelect.value
-    ){
-
-        githubState.year =
-            Number(
-                yearSelect.value
-            );
-
-    }
-
-
-    if(
-        monthSelect &&
-        monthSelect.value !== ''
-    ){
-
-        githubState.month =
-            Number(
-                monthSelect.value
-            );
-
-    }
-
-
-    const yearMode =
-        githubState.view === 'year';
-
-
-    if(yearSelect){
-
-        yearSelect.classList.remove(
-            'hidden'
-        );
-
-    }
-
-
-    if(monthSelect){
-
-        monthSelect.classList.toggle(
-            'hidden',
-            yearMode
-        );
-
-    }
-
-
-    document
-        .querySelectorAll(
-            '.github-view'
-        )
-        .forEach(
-            button =>
-                button.classList.toggle(
-                    'active',
-                    button.dataset.githubView ===
-                    githubState.view
-                )
-        );
-
-
-    if(yearMode){
-
-        renderGithubYear();
-
-    }else{
-
-        renderGithubMonth();
-
-    }
-
-}
-
-
-/* ---------------------------------------------------------
-   GITHUB CONTROLS
---------------------------------------------------------- */
-
-document
-    .querySelectorAll(
-        '.github-view'
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                'click',
-                () => {
-
-                    githubState.view =
-                        button.dataset.githubView === 'month'
-                            ? 'month'
-                            : 'year';
-
-                    renderGithubActivity();
-
-                }
-            );
-
-        }
+    toggle.setAttribute(
+      'title',
+      isDark
+        ? 'Switch to light mode'
+        : 'Switch to dark mode'
     );
 
 
-$('#githubYear')
-    ?.addEventListener(
-        'change',
-        () =>
-            renderGithubActivity()
+    toggle.setAttribute(
+      'aria-pressed',
+      isDark ? 'true' : 'false'
     );
 
-
-$('#githubMonth')
-    ?.addEventListener(
-        'change',
-        () =>
-            renderGithubActivity()
-    );
+  }
 
 
-/* =========================================================
-   LEETCODE RADAR
-========================================================= */
+  /*
+    Apply saved/system theme immediately.
+  */
+  applyTheme(currentTheme);
 
-const radarSkills = [
 
-    {
-        name:'Arrays',
-        score:84
+  /*
+    IMPORTANT:
+    Use document-level event delegation.
+
+    Instead of:
+      toggle.addEventListener(...)
+
+    we listen on document and check whether
+    the clicked element belongs to #themeToggle.
+
+    This prevents the button from becoming
+    disconnected if the header is re-rendered.
+  */
+  document.addEventListener(
+    'click',
+    function (event) {
+
+      const button =
+        event.target.closest('#themeToggle');
+
+
+      if (!button) return;
+
+
+      event.preventDefault();
+
+      event.stopPropagation();
+
+
+      const nextTheme =
+        currentTheme === 'dark'
+          ? 'light'
+          : 'dark';
+
+
+      applyTheme(nextTheme);
+
+
+      /*
+        Remember user's choice.
+      */
+      localStorage.setItem(
+        'kaushala-theme',
+        nextTheme
+      );
+
     },
-
-    {
-        name:'Strings',
-        score:72
-    },
-
-    {
-        name:'Hashing',
-        score:68
-    },
-
-    {
-        name:'Trees',
-        score:76
-    },
-
-    {
-        name:'Dynamic programming',
-        score:63
-    },
-
-    {
-        name:'Graphs',
-        score:79
-    }
-
-];
-
-
-/* ---------------------------------------------------------
-   RADAR POINT
---------------------------------------------------------- */
-
-function radarPoint(
-    index,
-    score
-){
-
-    const cx = 180;
-
-    const cy = 105;
-
-    const radius = 80;
-
-    const angle =
-        (
-            -90 +
-            index * 60
-        ) *
-        Math.PI /
-        180;
-
-    const safeScore =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                Number(score) || 0
-            )
-        );
-
-    const distance =
-        radius *
-        safeScore /
-        100;
-
-
-    return {
-
-        x:
-            cx +
-            Math.cos(angle) *
-            distance,
-
-        y:
-            cy +
-            Math.sin(angle) *
-            distance
-
-    };
-
-}
-
-
-/* ---------------------------------------------------------
-   RADAR INTERACTION
---------------------------------------------------------- */
-
-function showRadarSkill(index){
-
-    const skill =
-        radarSkills[index];
-
-    if(!skill)
-        return;
-
-
-    document
-        .querySelectorAll(
-            '.radar-nodes circle'
-        )
-        .forEach(
-            (node,nodeIndex) =>
-                node.classList.toggle(
-                    'active',
-                    nodeIndex === index
-                )
-        );
-
-
-    document
-        .querySelectorAll(
-            '.radar-list button'
-        )
-        .forEach(
-            (button,buttonIndex) =>
-                button.classList.toggle(
-                    'active',
-                    buttonIndex === index
-                )
-        );
-
-
-    const insight =
-        $('#radarInsight');
-
-    if(insight){
-
-        insight.textContent =
-            `${skill.name} · ${skill.score} / 100`;
-
-    }
-
-
-    const nodes =
-        document.querySelectorAll(
-            '.radar-nodes circle'
-        );
-
-    const node =
-        nodes[index];
-
-    const wrap =
-        $('.radar-wrap');
-
-    if(
-        !node ||
-        !wrap
-    )
-        return;
-
-
-    let tooltip =
-        $('#radarTooltip');
-
-
-    if(!tooltip){
-
-        tooltip =
-            document.createElement(
-                'div'
-            );
-
-        tooltip.id =
-            'radarTooltip';
-
-        tooltip.className =
-            'radar-tooltip';
-
-        wrap.appendChild(
-            tooltip
-        );
-
-    }
-
-
-    const nodeRect =
-        node.getBoundingClientRect();
-
-    const wrapRect =
-        wrap.getBoundingClientRect();
-
-
-    tooltip.innerHTML = `
-
-        <b>
-            ${skill.name}
-        </b>
-
-        <span>
-            ${skill.score} / 100
-        </span>
-
-    `;
-
-
-    tooltip.style.left =
-        `${
-            nodeRect.left -
-            wrapRect.left +
-            nodeRect.width / 2
-        }px`;
-
-
-    tooltip.style.top =
-        `${
-            nodeRect.top -
-            wrapRect.top -
-            8
-        }px`;
-
-
-    tooltip.classList.add(
-        'visible'
-    );
-
-}
-
-
-/* ---------------------------------------------------------
-   RADAR RENDER
---------------------------------------------------------- */
-
-function renderRadarChart(){
-
-    const polygon =
-        $('.radar-data');
-
-    const nodes =
-        document.querySelectorAll(
-            '.radar-nodes circle'
-        );
-
-
-    if(
-        !polygon ||
-        nodes.length !==
-        radarSkills.length
-    )
-        return;
-
-
-    polygon.setAttribute(
-        'points',
-
-        radarSkills
-            .map(
-                (skill,index) => {
-
-                    const point =
-                        radarPoint(
-                            index,
-                            skill.score
-                        );
-
-                    return `
-                        ${point.x.toFixed(1)},
-                        ${point.y.toFixed(1)}
-                    `
-                        .replace(
-                            /\s+/g,
-                            ''
-                        );
-
-                }
-            )
-            .join(' ')
-    );
-
-
-    nodes.forEach(
-        (node,index) => {
-
-            const skill =
-                radarSkills[index];
-
-            const point =
-                radarPoint(
-                    index,
-                    skill.score
-                );
-
-
-            node.setAttribute(
-                'cx',
-                point.x.toFixed(1)
-            );
-
-            node.setAttribute(
-                'cy',
-                point.y.toFixed(1)
-            );
-
-            node.dataset.skill =
-                skill.name;
-
-            node.dataset.score =
-                skill.score;
-
-
-            node.setAttribute(
-                'tabindex',
-                '0'
-            );
-
-            node.setAttribute(
-                'role',
-                'button'
-            );
-
-            node.setAttribute(
-                'aria-label',
-                `${skill.name}: ${skill.score} out of 100`
-            );
-
-
-            node.onclick =
-                () =>
-                    showRadarSkill(
-                        index
-                    );
-
-            node.onmouseenter =
-                () =>
-                    showRadarSkill(
-                        index
-                    );
-
-            node.onfocus =
-                () =>
-                    showRadarSkill(
-                        index
-                    );
-
-            node.onkeydown =
-                event => {
-
-                    if(
-                        event.key === 'Enter' ||
-                        event.key === ' '
-                    ){
-
-                        event.preventDefault();
-
-                        showRadarSkill(
-                            index
-                        );
-
-                    }
-
-                };
-
+    true
+  );
+
+
+  /*
+    If the user has NOT manually selected
+    a theme, react to operating-system
+    theme changes.
+  */
+  if (window.matchMedia) {
+
+    const media =
+      window.matchMedia(
+        '(prefers-color-scheme: dark)'
+      );
+
+
+    media.addEventListener?.(
+      'change',
+      event => {
+
+        /*
+          Don't override a manually saved
+          user preference.
+        */
+        if (
+          localStorage.getItem(
+            'kaushala-theme'
+          )
+        ) {
+          return;
         }
-    );
 
 
-    document
-        .querySelectorAll(
-            '.radar-list button'
-        )
-        .forEach(
-            (button,index) => {
-
-                button.onclick =
-                    () =>
-                        showRadarSkill(
-                            index
-                        );
-
-                button.onmouseenter =
-                    () =>
-                        showRadarSkill(
-                            index
-                        );
-
-            }
+        applyTheme(
+          event.matches
+            ? 'dark'
+            : 'light'
         );
 
-
-    showRadarSkill(0);
-
-}
-
-
-/* =========================================================
-   CV BUILDER
-========================================================= */
-
-function cvHTML(){
-
-    const name =
-        $('#profileName')
-            ?.childNodes[0]
-            ?.textContent
-            ?.trim() ||
-        'Aryan Mehta';
-
-
-    const projectList =
-        projects
-            .slice(0,4)
-            .map(
-                project =>
-                    `
-                    <li>
-                        <b>
-                            ${project.name}
-                        </b>
-                        —
-                        ${project.desc}
-                        <em>
-                            (${project.category})
-                        </em>
-                    </li>
-                    `
-            )
-            .join('');
-
-
-    return `
-
-        <!doctype html>
-
-        <html>
-
-        <head>
-
-            <meta charset="utf-8">
-
-            <title>
-                ${name} — CV
-            </title>
-
-            <style>
-
-                body{
-                    font-family:Arial,sans-serif;
-                    color:#1b2432;
-                    max-width:760px;
-                    margin:42px auto;
-                    line-height:1.5;
-                    padding:0 25px;
-                }
-
-                h1{
-                    font-size:30px;
-                    margin:0;
-                }
-
-                h2{
-                    font-size:14px;
-                    text-transform:uppercase;
-                    letter-spacing:1.2px;
-                    color:#6041c9;
-                    border-bottom:1px solid #d9ddef;
-                    padding-bottom:5px;
-                    margin-top:24px;
-                }
-
-                .meta{
-                    color:#667085;
-                    font-size:13px;
-                }
-
-                .tag{
-                    display:inline-block;
-                    background:#efebff;
-                    color:#543bb2;
-                    padding:3px 7px;
-                    border-radius:10px;
-                    font-size:11px;
-                    margin:3px;
-                }
-
-                .stats{
-                    display:flex;
-                    gap:25px;
-                    background:#f5f6fb;
-                    padding:12px;
-                    border-radius:7px;
-                    font-size:12px;
-                }
-
-                .stats b{
-                    display:block;
-                    font-size:17px;
-                }
-
-            </style>
-
-        </head>
-
-        <body>
-
-            <h1>
-                ${name}
-            </h1>
-
-            <p class="meta">
-                Computer Science Student · Bengaluru, India
-                · K.ID ${$('#kidValue')?.textContent || 'KN-8240'}
-            </p>
-
-            <h2>
-                Profile
-            </h2>
-
-            <p>
-                Proof-led developer with strengths in
-                full-stack development, product thinking,
-                and problem solving.
-            </p>
-
-            <h2>
-                Technical skills
-            </h2>
-
-            <span class="tag">
-                JavaScript · Advanced
-            </span>
-
-            <span class="tag">
-                React · Advanced
-            </span>
-
-            <span class="tag">
-                Data Structures · Verified
-            </span>
-
-            <span class="tag">
-                Full-stack development
-            </span>
-
-            <h2>
-                Projects
-            </h2>
-
-            <ul>
-                ${projectList}
-            </ul>
-
-            <h2>
-                Credentials
-            </h2>
-
-            <ul>
-
-                <li>
-                    <b>
-                        Meta Front-End Developer
-                    </b>
-                    —
-                    Coursera,
-                    May 2026
-                </li>
-
-                <li>
-                    <b>
-                        AWS Cloud Practitioner
-                    </b>
-                    —
-                    Amazon Web Services,
-                    February 2026
-                </li>
-
-            </ul>
-
-            <h2>
-                LeetCode performance
-            </h2>
-
-            <div class="stats">
-
-                <span>
-                    <b>247</b>
-                    Problems solved
-                </span>
-
-                <span>
-                    <b>1,682</b>
-                    Contest rating
-                </span>
-
-                <span>
-                    <b>Top 18%</b>
-                    Global ranking
-                </span>
-
-            </div>
-
-            <h2>
-                GitHub activity
-            </h2>
-
-            <p>
-                12 repositories ·
-                206 contributions in 2026
-            </p>
-
-        </body>
-
-        </html>
-
-    `;
-
-}
-
-
-/* =========================================================
-   CV EVENTS
-========================================================= */
-
-$('#buildCV')
-    ?.addEventListener(
-        'click',
-        () => {
-
-            const preview =
-                $('#cvPreview');
-
-            if(preview){
-
-                const documentObject =
-                    new DOMParser()
-                        .parseFromString(
-                            cvHTML(),
-                            'text/html'
-                        );
-
-                preview.innerHTML =
-                    documentObject
-                        .body
-                        .innerHTML;
-
-            }
-
-            $('#cvModal')
-                .classList
-                .remove('hidden');
-
-        }
+      }
     );
 
+  }
 
-$('#closeCVModal')
-    ?.addEventListener(
-        'click',
-        () =>
-            $('#cvModal')
-                .classList
-                .add('hidden')
-    );
-
-
-$('#downloadCV')
-    ?.addEventListener(
-        'click',
-        () => {
-
-            const name =
-                (
-                    $('#profileName')
-                        ?.childNodes[0]
-                        ?.textContent ||
-                    'Aryan Mehta'
-                )
-                    .trim()
-                    .replace(
-                        /[^a-z0-9]/gi,
-                        '_'
-                    );
-
-
-            const file =
-                new Blob(
-                    [cvHTML()],
-                    {
-                        type:
-                            'application/msword'
-                    }
-                );
-
-
-            const url =
-                URL.createObjectURL(
-                    file
-                );
-
-
-            const link =
-                document.createElement(
-                    'a'
-                );
-
-            link.href =
-                url;
-
-            link.download =
-                `${name}_Kaushala_CV.doc`;
-
-            link.click();
-
-            URL.revokeObjectURL(
-                url
-            );
-
-
-            toast(
-                'Your CV document is downloading.'
-            );
-
-        }
-    );
-
-
-$('#printCV')
-    ?.addEventListener(
-        'click',
-        () => {
-
-            const win =
-                window.open(
-                    '',
-                    '_blank'
-                );
-
-            if(!win){
-
-                toast(
-                    'Allow pop-ups to print your CV.'
-                );
-
-                return;
-            }
-
-            win.document.write(
-                cvHTML()
-            );
-
-            win.document.close();
-
-            win.focus();
-
-            setTimeout(
-                () =>
-                    win.print(),
-                250
-            );
-
-        }
-    );
-
-
-/* =========================================================
-   COPY K.ID
-========================================================= */
-
-$('#copyKid')
-    ?.addEventListener(
-        'click',
-        async () => {
-
-            const value =
-                $('#kidValue')
-                    ?.textContent
-                    ?.trim();
-
-            if(!value)
-                return;
-
-            try{
-
-                await navigator.clipboard.writeText(
-                    value
-                );
-
-                toast(
-                    'K.ID copied.'
-                );
-
-            }catch{
-
-                toast(
-                    `Your K.ID is ${value}`
-                );
-
-            }
-
-        }
-    );
-
-
-/* =========================================================
-   SIGN OUT
-========================================================= */
-
-$('#signout')
-    ?.addEventListener(
-        'click',
-        () => {
-
-            $('#app')
-                .classList
-                .add('hidden');
-
-            $('#auth')
-                .classList
-                .remove('hidden');
-
-        }
-    );
-
-
-/* =========================================================
-   INITIALIZATION
-========================================================= */
-
-renderProjects();
-
-renderOpps();
-
-updateRecruiterAccess();
-
-requestAnimationFrame(
-    () => {
-
-        renderGithubActivity();
-
-        renderRadarChart();
-
-    }
-);
-
-
-/* =========================================================
-   RESIZE
-========================================================= */
-
-window.addEventListener(
-    'resize',
-    () => {
-
-        renderRadarChart();
-
-    }
-);
+})();

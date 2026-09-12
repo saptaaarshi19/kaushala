@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KAUSHALA — Student profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand-mark">
+      <span class="logo-badge">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6 24 C6 14, 13 7, 22 7 C31 7, 36 13, 36 21 C36 30, 29 35, 20 35 C15 35, 10.5 33.5, 8 30.5 C7 32, 5.5 33, 4 33.2 C5.3 31, 6 28, 6 24 Z" fill="#FFFFFF" stroke="#171717" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M13 15 L11 10" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M18 13 L18 8" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M23 22 v6" stroke="#171717" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M29 22 l3 3" stroke="#171717" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M12 26 c1.2-1.6 3.3-1.6 4.4 0" stroke="#FF6B6B" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span>KAUSHALA</span>
+    </div>
+    <span class="kid-chip" id="sidebar-kid">KSH-S-00000</span>
+
+    <ul class="nav-list" id="nav-list">
+      <li><button data-view="overview" class="is-active">Overview</button></li>
+      <li><button data-view="skills">Skills</button></li>
+      <li><button data-view="saksham">Saksham AI</button></li>
+      <li><button data-view="research">Research papers</button></li>
+      <li><button data-view="cv">CV builder</button></li>
+      <li><button data-view="settings">Settings</button></li>
+    </ul>
+
+    <div class="sidebar-foot">
+      <div class="theme-toggle">
+        <span>Dark mode</span>
+        <button class="switch" id="theme-switch" aria-label="Toggle dark mode"></button>
+      </div>
+      <button class="logout-btn" id="logout-btn">Log out</button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section class="view is-active" id="view-overview">
+      <div class="main-head">
+        <div>
+          <h1>Welcome back<span id="overview-name-suffix"></span></h1>
+          <div class="sub">Here's where your verified skill record stands today.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="profile-row">
+            <div class="avatar" id="avatar-initial">A</div>
+            <div>
+              <div class="profile-name" id="profile-name">—</div>
+              <div class="profile-tag" id="profile-headline">Add a headline in Settings</div>
+              <span class="level-badge" id="overview-level-badge">No skills yet</span>
+            </div>
+          </div>
+        </div>
+        <div class="panel span-5">
+          <div class="panel-head">
+            <h2>At a glance</h2>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:.88rem;">
+            <div><strong id="stat-skills">0</strong><div class="field-hint">skills tracked</div></div>
+            <div><strong id="stat-verified">0</strong><div class="field-hint">professional level</div></div>
+            <div><strong id="stat-papers">0</strong><div class="field-hint">research papers</div></div>
+          </div>
+        </div>
+
+        <div class="panel span-7">
+          <div class="panel-head">
+            <h2>Skill map</h2>
+            <span class="meta">as scored by Saksham AI</span>
+          </div>
+          <canvas id="chart-radar" height="220"></canvas>
+        </div>
+
+        <div class="panel span-5">
+          <div class="panel-head">
+            <h2>
+              <span class="saksham-avatar sm">
+                <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12 6 v4 M28 6 v4" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+                  <circle cx="12" cy="5" r="2" fill="#FF6B6B" stroke="#171717" stroke-width="1.2"/>
+                  <circle cx="28" cy="5" r="2" fill="#FF6B6B" stroke="#171717" stroke-width="1.2"/>
+                  <rect x="6" y="10" width="28" height="22" rx="8" fill="#FFFFFF" stroke="#171717" stroke-width="2.4"/>
+                  <rect x="12" y="16" width="16" height="10" rx="4" fill="#171717"/>
+                  <circle cx="16.5" cy="21" r="1.6" fill="#FFD93D"/>
+                  <circle cx="23.5" cy="21" r="1.6" fill="#FFD93D"/>
+                </svg>
+              </span>
+              Saksham activity
+            </h2>
+            <span class="pulse-dot" title="Analysing in the background"></span>
+          </div>
+          <ul class="saksham-log" id="overview-log"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SKILLS ---------- -->
+    <section class="view" id="view-skills">
+      <div class="main-head">
+        <div>
+          <h1>Skills ledger</h1>
+          <div class="sub">Every level here was unlocked by a Saksham AI test — not self-declared.</div>
+        </div>
+        <button class="btn btn-accent" id="add-skill-btn">Add a skill</button>
+      </div>
+
+      <div class="panel span-12">
+        <div class="ledger" id="skills-ledger">
+          <!-- rows injected by js -->
+        </div>
+        <div class="empty-note" id="skills-empty" style="margin-top:1rem; display:none;">
+          No skills yet. Add one relevant to your AYUSH track — for example Ayurvedic Pharmacology, Panchakarma Therapy, or Yoga Instruction — and Saksham AI will test it.
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SAKSHAM AI ---------- -->
+    <section class="view" id="view-saksham">
+      <div class="main-head">
+        <div>
+          <h1 style="display:flex; align-items:center; gap:.5em;">
+            <span class="saksham-avatar">
+              <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 6 v4 M28 6 v4" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+                <circle cx="12" cy="5" r="2" fill="#FF6B6B" stroke="#171717" stroke-width="1.2"/>
+                <circle cx="28" cy="5" r="2" fill="#FF6B6B" stroke="#171717" stroke-width="1.2"/>
+                <rect x="6" y="10" width="28" height="22" rx="8" fill="#FFFFFF" stroke="#171717" stroke-width="2.4"/>
+                <rect x="12" y="16" width="16" height="10" rx="4" fill="#171717"/>
+                <circle cx="16.5" cy="21" r="1.6" fill="#FFD93D"/>
+                <circle cx="23.5" cy="21" r="1.6" fill="#FFD93D"/>
+              </svg>
+            </span>
+            Saksham AI
+          </h1>
+          <div class="sub">A background analyser and evaluator — not a chatbot. It reads your evidence and decides what you've actually proven.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="panel-head">
+            <h2>Skill gap analysis</h2>
+            <span class="meta">your level vs. professional benchmark</span>
+          </div>
+          <canvas id="chart-gap" height="220"></canvas>
+        </div>
+        <div class="panel span-5">
+          <div class="panel-head"><h2>How Saksham decides</h2></div>
+          <p style="font-size:.88rem;">Every skill starts at <strong>beginner</strong>. To move up a stage, you take a short evidence test set by Saksham — pass it, and the next stage unlocks. Nothing is marked professional without a passed test at that stage.</p>
+          <div class="stage-track" style="margin-top:.8rem;">
+            <div class="stage-seg is-filled"></div><div class="stage-seg is-filled"></div><div class="stage-seg is-current"></div>
+          </div>
+          <div class="stage-label">beginner → amateur → professional</div>
+        </div>
+
+        <div class="panel span-12">
+          <div class="panel-head">
+            <h2>Full activity log</h2>
+          </div>
+          <ul class="saksham-log" id="full-log"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- RESEARCH ---------- -->
+    <section class="view" id="view-research">
+      <div class="main-head">
+        <div>
+          <h1>Research papers</h1>
+          <div class="sub">Upload past work — Saksham AI queues it for review, and institutions can see it once assessed.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Upload a paper</h2></div>
+          <form id="paper-form">
+            <div class="field">
+              <label for="paper-title">Title</label>
+              <input type="text" id="paper-title" placeholder="e.g. Efficacy of Triphala in ..." required />
+            </div>
+            <div class="field">
+              <label for="paper-file">File</label>
+              <input type="file" id="paper-file" accept=".pdf,.doc,.docx" />
+              <div class="field-hint">In this demo the file name is recorded; storage would be handled by a backend.</div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Submit for review</button>
+          </form>
+        </div>
+        <div class="panel span-7">
+          <div class="panel-head"><h2>Your submissions</h2></div>
+          <ul class="paper-list" id="paper-list"></ul>
+          <div class="empty-note" id="papers-empty" style="margin-top:.6rem; display:none;">No papers uploaded yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- CV BUILDER ---------- -->
+    <section class="view" id="view-cv">
+      <div class="main-head no-print">
+        <div>
+          <h1>CV builder</h1>
+          <div class="sub">Auto-built from your verified profile — no re-typing.</div>
+        </div>
+        <button class="btn btn-accent" id="print-cv-btn">Download / print</button>
+      </div>
+
+      <div class="cv-preview" id="cv-preview">
+        <!-- injected -->
+      </div>
+    </section>
+
+    <!-- ---------- SETTINGS ---------- -->
+    <section class="view" id="view-settings">
+      <div class="main-head">
+        <div>
+          <h1>Settings</h1>
+          <div class="sub">Your account, your control.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="panel-head"><h2>Edit profile</h2></div>
+          <form id="profile-form">
+            <div class="field">
+              <label for="settings-name">Full name</label>
+              <input type="text" id="settings-name" />
+            </div>
+            <div class="field">
+              <label for="settings-headline">Headline</label>
+              <input type="text" id="settings-headline" placeholder="e.g. Final-year BAMS student" />
+            </div>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </form>
+        </div>
+
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Account</h2></div>
+          <div class="settings-row">
+            <div><div class="label">Kaushala ID</div><div class="desc" id="settings-kid">KSH-S-00000</div></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="label">Email</div><div class="desc" id="settings-email">—</div></div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="label">Notifications</div>
+              <div class="desc">Saksham updates and institution requests</div>
+            </div>
+            <button class="switch" id="notif-switch" aria-label="Toggle notifications"></button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="label">Appearance</div>
+              <div class="desc">Dark or light mode</div>
+            </div>
+            <button class="switch" id="settings-theme-switch" aria-label="Toggle dark mode"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= QUIZ MODAL ================= -->
+<div class="modal-backdrop" id="quiz-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div style="display:flex; gap:.7em; align-items:flex-start;">
+        <span class="saksham-avatar sm" style="margin-top:.1em;">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 6 v4 M28 6 v4" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+            <circle cx="12" cy="5" r="2" fill="#FF6B6B" stroke="#171717" stroke-width="1.2"/>
+            <circle cx="28" cy="5" r="2" fill="#FF6B6B" stroke="#171717" stroke-width="1.2"/>
+            <rect x="6" y="10" width="28" height="22" rx="8" fill="#FFFFFF" stroke="#171717" stroke-width="2.4"/>
+            <rect x="12" y="16" width="16" height="10" rx="4" fill="#171717"/>
+            <circle cx="16.5" cy="21" r="1.6" fill="#FFD93D"/>
+            <circle cx="23.5" cy="21" r="1.6" fill="#FFD93D"/>
+          </svg>
+        </span>
+        <div>
+        <h3 id="quiz-title" style="margin-bottom:.1em;">Saksham evidence test</h3>
+        <div class="quiz-progress" id="quiz-progress">Question 1 of 3</div>
+        </div>
+      </div>
+      <button class="modal-close" id="quiz-close" aria-label="Close">&times;</button>
+    </div>
+    <div id="quiz-body"></div>
+  </div>
+</div>
+
+<!-- ================= ADD SKILL MODAL ================= -->
+<div class="modal-backdrop" id="skill-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add a skill</h3>
+      <button class="modal-close" id="skill-modal-close" aria-label="Close">&times;</button>
+    </div>
+    <form id="skill-form">
+      <div class="field">
+        <label for="skill-name-input">Skill name</label>
+        <input type="text" id="skill-name-input" placeholder="e.g. Ayurvedic Pharmacology" required />
+        <div class="field-hint">Try Ayurvedic Pharmacology, Panchakarma Therapy, Yoga Instruction or Clinical Research Methodology for a fully curated test — any other skill gets a Saksham-generated evidence test.</div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Add and start beginner test</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/saksham.js"></script>
+<script src="js/student.js"></script>
+</body>
+</html>

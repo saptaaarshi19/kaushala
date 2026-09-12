@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KAUSHALA — Industry dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style%20(2).css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand-mark">
+      <span class="logo-badge">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6 24 C6 14, 13 7, 22 7 C31 7, 36 13, 36 21 C36 30, 29 35, 20 35 C15 35, 10.5 33.5, 8 30.5 C7 32, 5.5 33, 4 33.2 C5.3 31, 6 28, 6 24 Z" fill="#FFFFFF" stroke="#171717" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M13 15 L11 10" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M18 13 L18 8" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M23 22 v6" stroke="#171717" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M29 22 l3 3" stroke="#171717" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M12 26 c1.2-1.6 3.3-1.6 4.4 0" stroke="#FF6B6B" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span>KAUSHALA</span>
+    </div>
+    <span class="kid-chip" id="sidebar-kid">KSH-X-00000</span>
+
+    <ul class="nav-list" id="nav-list">
+      <li><button data-view="overview" class="is-active">Overview</button></li>
+      <li><button data-view="opportunities">Opportunities</button></li>
+      <li><button data-view="collab-feed">Collaborations</button></li>
+      <li><button data-view="settings">Settings</button></li>
+    </ul>
+
+    <div class="sidebar-foot">
+      <div class="theme-toggle">
+        <span>Dark mode</span>
+        <button class="switch" id="theme-switch" aria-label="Toggle dark mode"></button>
+      </div>
+      <button class="logout-btn" id="logout-btn">Log out</button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section class="view is-active" id="view-overview">
+      <div class="main-head">
+        <div>
+          <h1 id="overview-title">Welcome back</h1>
+          <div class="sub">Everything you've posted and everyone working on it, in one place.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="profile-row">
+            <div class="avatar" id="avatar-initial">V</div>
+            <div>
+              <div class="profile-name" id="profile-name">—</div>
+              <div class="profile-tag" id="profile-headline">Add a headline in Settings</div>
+              <span class="level-badge" id="verified-badge" style="display:none;">Verified recruiter</span>
+            </div>
+          </div>
+        </div>
+        <div class="panel span-5">
+          <div class="panel-head"><h2>At a glance</h2></div>
+          <div style="display:flex; justify-content:space-between; font-size:.88rem;">
+            <div><strong id="stat-opps">0</strong><div class="field-hint">opportunities posted</div></div>
+            <div><strong id="stat-applicants">0</strong><div class="field-hint">total applicants</div></div>
+            <div><strong id="stat-teams">0</strong><div class="field-hint">student teams engaged</div></div>
+          </div>
+          <div class="field-hint" id="badge-progress" style="margin-top:1rem;"></div>
+        </div>
+
+        <div class="panel span-12">
+          <div class="panel-head">
+            <h2>Saksham activity</h2>
+            <span class="pulse-dot" title="Analysing in the background"></span>
+          </div>
+          <ul class="saksham-log" id="overview-log"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- OPPORTUNITIES ---------- -->
+    <section class="view" id="view-opportunities">
+      <div class="main-head">
+        <div>
+          <h1>Your opportunities</h1>
+          <div class="sub">Post an internship for individual applicants, or a research problem institutions can form teams against.</div>
+        </div>
+        <button class="btn btn-accent" id="post-opp-btn">Post an opportunity</button>
+      </div>
+
+      <div id="opp-list" class="grid"></div>
+      <div class="empty-note" id="opp-empty" style="margin-top:1rem; display:none;">You haven't posted anything yet.</div>
+    </section>
+
+    <!-- ---------- OPPORTUNITY DETAIL (not in nav) ---------- -->
+    <section class="view" id="view-opp-detail">
+      <div class="main-head">
+        <div>
+          <button class="btn btn-ghost btn-sm" id="back-to-opps">&larr; Back to opportunities</button>
+          <h1 style="margin-top:.6rem; display:flex; align-items:center; gap:.6rem;" id="detail-title">Opportunity</h1>
+          <div class="sub" id="detail-sub"></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="panel-head"><h2>Summary</h2></div>
+          <p id="detail-summary"></p>
+          <div id="detail-skills" style="margin-top:.6rem;"></div>
+        </div>
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Specialists with access</h2></div>
+          <div id="specialist-list" style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:1rem;"></div>
+          <form id="specialist-form">
+            <div class="field">
+              <label for="specialist-name">Name</label>
+              <input type="text" id="specialist-name" placeholder="e.g. Dr. Kavya Menon" required />
+            </div>
+            <div class="field">
+              <label for="specialist-email">Email</label>
+              <input type="email" id="specialist-email" placeholder="specialist@company.com" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-sm">Grant access</button>
+          </form>
+          <p class="field-hint" style="margin-top:.6rem;">Demo note: this records who has visibility into the project. Real per-person login and access control would need a backend.</p>
+        </div>
+
+        <!-- internship-only: ranked applicants -->
+        <div class="panel span-12" id="applicants-panel" style="display:none;">
+          <div class="panel-head">
+            <h2>Applicants — ranked by Saksham AI</h2>
+            <span class="meta">skill match · research output · quality</span>
+          </div>
+          <div id="applicants-list"></div>
+          <div class="empty-note" id="applicants-empty" style="display:none;">No applicants yet.</div>
+        </div>
+
+        <!-- research-only: collaborating teams -->
+        <div class="panel span-12" id="teams-panel" style="display:none;">
+          <div class="panel-head"><h2>Institutions collaborating on this</h2></div>
+          <div id="opp-teams-list"></div>
+          <div class="empty-note" id="opp-teams-empty" style="display:none;">No institution has formed a team for this yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- COLLABORATIONS FEED ---------- -->
+    <section class="view" id="view-collab-feed">
+      <div class="main-head">
+        <div>
+          <h1>Institutional collaborations</h1>
+          <div class="sub">Every student team, across every institution, currently working on one of your research problems.</div>
+        </div>
+      </div>
+      <div id="collab-feed-list"></div>
+      <div class="empty-note" id="collab-feed-empty" style="display:none;">No teams have formed yet.</div>
+    </section>
+
+    <!-- ---------- TEAM VIEW (read-only, opened from a collaboration) ---------- -->
+    <section class="view" id="view-team-read">
+      <div class="main-head">
+        <div>
+          <button class="btn btn-ghost btn-sm" id="back-from-team">&larr; Back</button>
+          <h1 style="margin-top:.6rem;" id="rt-title">Team</h1>
+          <div class="sub" id="rt-subtitle"></div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="panel span-6">
+          <div class="panel-head"><h2>Notes</h2></div>
+          <ul class="saksham-log" id="rt-notes"></ul>
+          <form id="rt-note-form" style="margin-top:1rem;">
+            <div class="field">
+              <label for="rt-note-input">Add specialist feedback</label>
+              <textarea id="rt-note-input" rows="2" placeholder="Feedback or a next step for the team..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Post as specialist</button>
+          </form>
+        </div>
+        <div class="panel span-6">
+          <div class="panel-head"><h2>Research papers</h2></div>
+          <ul class="paper-list" id="rt-papers"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SETTINGS ---------- -->
+    <section class="view" id="view-settings">
+      <div class="main-head">
+        <div>
+          <h1>Settings</h1>
+          <div class="sub">Your company's account, your control.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="panel-head"><h2>Edit profile</h2></div>
+          <form id="profile-form">
+            <div class="field">
+              <label for="settings-name">Company name</label>
+              <input type="text" id="settings-name" />
+            </div>
+            <div class="field">
+              <label for="settings-headline">Headline</label>
+              <input type="text" id="settings-headline" placeholder="e.g. Ayurvedic pharmaceuticals, Kochi" />
+            </div>
+            <div class="field">
+              <label for="settings-employees">Number of employees</label>
+              <input type="number" id="settings-employees" min="0" />
+              <div class="field-hint">Verified recruiter status unlocks at 100+ employees, or with active participation across your posted programmes.</div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </form>
+        </div>
+
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Account</h2></div>
+          <div class="settings-row">
+            <div><div class="label">Kaushala ID</div><div class="desc" id="settings-kid">KSH-X-00000</div></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="label">Email</div><div class="desc" id="settings-email">—</div></div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="label">Notifications</div>
+              <div class="desc">New applicants and team updates</div>
+            </div>
+            <button class="switch" id="notif-switch" aria-label="Toggle notifications"></button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="label">Appearance</div>
+              <div class="desc">Dark or light mode</div>
+            </div>
+            <button class="switch" id="settings-theme-switch" aria-label="Toggle dark mode"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= POST OPPORTUNITY MODAL ================= -->
+<div class="modal-backdrop" id="opp-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Post an opportunity</h3>
+      <button class="modal-close" id="opp-modal-close" aria-label="Close">&times;</button>
+    </div>
+    <form id="opp-form">
+      <div class="field">
+        <label>Type</label>
+        <div class="role-picker" id="opp-type-picker">
+          <div class="role-opt is-selected" data-type="internship" tabindex="0" role="button">Internship</div>
+          <div class="role-opt" data-type="research" tabindex="0" role="button">Research</div>
+        </div>
+        <div class="field-hint">Internships take individual student applicants, ranked by Saksham. Research problems are taken on by institutions as teams.</div>
+      </div>
+      <div class="field">
+        <label for="opp-title">Title</label>
+        <input type="text" id="opp-title" placeholder="e.g. Regulatory Affairs Intern" required />
+      </div>
+      <div class="field">
+        <label for="opp-summary">Summary</label>
+        <textarea id="opp-summary" rows="3" placeholder="What will the student(s) actually do?" required></textarea>
+      </div>
+      <div class="field">
+        <label for="opp-skills">Skills needed (comma separated)</label>
+        <input type="text" id="opp-skills" placeholder="e.g. Ayurvedic Pharmacology, Clinical Research Methodology" required />
+      </div>
+      <div class="field">
+        <label for="opp-deadline">Deadline</label>
+        <input type="date" id="opp-deadline" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Post opportunity</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data%20(2).js"></script>
+<script src="js/saksham.js"></script>
+<script src="js/industry.js"></script>
+</body>
+</html>

@@ -362,6 +362,16 @@ button{ font-family:inherit; cursor:pointer; }
 .paper-status.pending{ background:var(--yellow); color:var(--ink); }
 .paper-status.reviewed{ background:var(--teal); color:var(--ink); }
 
+/* opportunity type chips + applicant score badge */
+.type-chip{ font-size:.72rem; font-weight:800; padding:.3em .7em; border-radius:99px; border:2px solid var(--ink); }
+.type-chip.internship{ background:var(--coral); color:var(--ink); }
+.type-chip.research{ background:var(--purple); color:var(--ink); }
+.score-badge{
+  font-family:var(--display); font-weight:800; font-size:1.1rem;
+  border:2px solid var(--ink); border-radius:var(--radius-sm); padding:.3em .7em;
+  background:var(--green); color:var(--ink); min-width:52px; text-align:center;
+}
+
 /* settings */
 .settings-row{ display:flex; justify-content:space-between; align-items:center; padding:.9rem 0; border-bottom:2px dashed var(--ink); gap:1rem; }
 .settings-row:last-child{ border-bottom:none; }

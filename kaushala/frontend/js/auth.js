@@ -62,11 +62,6 @@
       document.getElementById("signup-password-field").classList.remove("has-error");
     }
 
-    if (selectedRole !== "student") {
-      showToast("Institution and industry signup are coming soon — try Student for this build.");
-      return;
-    }
-
     if (!valid) return;
 
     if (emailExists(email)) {
@@ -85,7 +80,10 @@
 
   document.getElementById("go-to-profile").addEventListener("click", () => {
     setSession(createdEmail);
-    window.location.href = "student.html";
+    const createdUser = getCurrentUser();
+    if (createdUser.role === "student") window.location.href = "student (2).html";
+    else if (createdUser.role === "industry") window.location.href = "industry.html";
+    else window.location.href = "institution.html";
   });
 
   // ---- login ----
@@ -102,11 +100,8 @@
       return;
     }
     setSession(user.email);
-    if (user.role === "student") {
-      window.location.href = "student.html";
-    } else {
-      showToast("That dashboard isn't built yet in this demo — logging in as student view.");
-      window.location.href = "student.html";
-    }
+    if (user.role === "student") window.location.href = "student (2).html";
+    else if (user.role === "industry") window.location.href = "industry.html";
+    else window.location.href = "institution.html";
   });
 })();

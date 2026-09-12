@@ -59,6 +59,7 @@
   const stageScore = { beginner: 33, amateur: 66, professional: 100, mastered: 100 };
 
   function renderCharts() {
+    if (typeof Chart === "undefined") return;
     const skills = user.profile.skills;
     const labels = skills.length ? skills.map((s) => s.name) : ["Add a skill"];
     const values = skills.length ? skills.map((s) => stageScore[s.stage] || 0) : [0];

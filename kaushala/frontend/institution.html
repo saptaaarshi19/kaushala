@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KAUSHALA — Institution dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style%20(2).css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand-mark">
+      <span class="logo-badge">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6 24 C6 14, 13 7, 22 7 C31 7, 36 13, 36 21 C36 30, 29 35, 20 35 C15 35, 10.5 33.5, 8 30.5 C7 32, 5.5 33, 4 33.2 C5.3 31, 6 28, 6 24 Z" fill="#FFFFFF" stroke="#171717" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M13 15 L11 10" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M18 13 L18 8" stroke="#171717" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M23 22 v6" stroke="#171717" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M29 22 l3 3" stroke="#171717" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M12 26 c1.2-1.6 3.3-1.6 4.4 0" stroke="#FF6B6B" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span>KAUSHALA</span>
+    </div>
+    <span class="kid-chip" id="sidebar-kid">KSH-I-00000</span>
+
+    <ul class="nav-list" id="nav-list">
+      <li><button data-view="overview" class="is-active">Overview</button></li>
+      <li><button data-view="students">Students</button></li>
+      <li><button data-view="analysis">Skill analysis</button></li>
+      <li><button data-view="collab">Collaboration</button></li>
+      <li><button data-view="settings">Settings</button></li>
+    </ul>
+
+    <div class="sidebar-foot">
+      <div class="theme-toggle">
+        <span>Dark mode</span>
+        <button class="switch" id="theme-switch" aria-label="Toggle dark mode"></button>
+      </div>
+      <button class="logout-btn" id="logout-btn">Log out</button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section class="view is-active" id="view-overview">
+      <div class="main-head">
+        <div>
+          <h1 id="overview-title">Welcome back</h1>
+          <div class="sub">A live view of your students' verified skill record.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="profile-row">
+            <div class="avatar" id="avatar-initial">I</div>
+            <div>
+              <div class="profile-name" id="profile-name">—</div>
+              <div class="profile-tag" id="profile-headline">Add a headline in Settings</div>
+              <span class="level-badge" id="verified-badge" style="display:none;">Verified institution</span>
+            </div>
+          </div>
+        </div>
+        <div class="panel span-5">
+          <div class="panel-head"><h2>At a glance</h2></div>
+          <div style="display:flex; justify-content:space-between; font-size:.88rem;">
+            <div><strong id="stat-students">0</strong><div class="field-hint">students added</div></div>
+            <div><strong id="stat-skills">0</strong><div class="field-hint">distinct skills tracked</div></div>
+            <div><strong id="stat-teams">0</strong><div class="field-hint">active teams</div></div>
+          </div>
+          <div class="field-hint" id="badge-progress" style="margin-top:1rem;"></div>
+        </div>
+
+        <div class="panel span-12">
+          <div class="panel-head">
+            <h2>Saksham activity</h2>
+            <span class="pulse-dot" title="Analysing in the background"></span>
+          </div>
+          <ul class="saksham-log" id="overview-log"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- STUDENTS ---------- -->
+    <section class="view" id="view-students">
+      <div class="main-head">
+        <div>
+          <h1>Students</h1>
+          <div class="sub">Add a student with their K.ID — a verification code goes to the email they registered with.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Add a student</h2></div>
+
+          <form id="kid-lookup-form">
+            <div class="field">
+              <label for="add-kid-input">Student K.ID</label>
+              <input type="text" id="add-kid-input" placeholder="e.g. KSH-S-48213" />
+              <div class="field-error" id="kid-lookup-error">No student found with that K.ID.</div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Send verification code</button>
+          </form>
+
+          <div id="otp-step" style="display:none; margin-top:1.2rem; padding-top:1.2rem; border-top:2px dashed var(--ink);">
+            <p style="font-size:.85rem;" id="otp-sent-note"></p>
+            <div class="field">
+              <label for="otp-input">Enter the 6-digit code</label>
+              <input type="text" id="otp-input" maxlength="6" placeholder="123456" />
+              <div class="field-error" id="otp-error">That code doesn't match — check and try again.</div>
+            </div>
+            <button type="button" class="btn btn-accent btn-block" id="confirm-otp-btn">Confirm and add student</button>
+            <button type="button" class="btn btn-ghost btn-block" style="margin-top:.6rem;" id="cancel-otp-btn">Cancel</button>
+          </div>
+
+          <p class="form-note">Demo note: since no real mail server is connected here, the code is shown on screen instead of emailed. In production it would only ever reach the student's inbox.</p>
+          <button class="btn btn-ghost btn-sm" id="seed-demo-btn" style="margin-top:.8rem;">Add 50 sample students (demo — for testing the verified badge)</button>
+        </div>
+
+        <div class="panel span-7">
+          <div class="panel-head">
+            <h2>Roster</h2>
+            <span class="meta" id="roster-count">0 students</span>
+          </div>
+          <div class="ledger" id="roster-list"></div>
+          <div class="empty-note" id="roster-empty">No students added yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SKILL ANALYSIS ---------- -->
+    <section class="view" id="view-analysis">
+      <div class="main-head">
+        <div>
+          <h1>Skill analysis</h1>
+          <div class="sub">Saksham AI's read on your whole student body at once — not self-reported claims.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-12">
+          <div class="panel-head">
+            <h2>Skill levels across your roster</h2>
+            <span class="meta">beginner · amateur · professional / mastered</span>
+          </div>
+          <canvas id="chart-institution" height="110"></canvas>
+          <div class="empty-note" id="analysis-empty" style="margin-top:1rem; display:none;">Add students to see skill analysis.</div>
+        </div>
+
+        <div class="panel span-12">
+          <div class="panel-head"><h2>Where your students need the most support</h2></div>
+          <div id="gap-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- COLLABORATION ---------- -->
+    <section class="view" id="view-collab">
+      <div class="main-head">
+        <div>
+          <h1>Industry collaboration</h1>
+          <div class="sub">Real problems from AYUSH-aligned industry partners. Form a team from your verified roster and work with their specialists.</div>
+        </div>
+      </div>
+
+      <div id="problem-list" class="grid"></div>
+    </section>
+
+    <!-- ---------- TEAM WORKSPACE (not in nav; opened from a team) ---------- -->
+    <section class="view" id="view-team">
+      <div class="main-head">
+        <div>
+          <button class="btn btn-ghost btn-sm" id="back-to-collab">&larr; Back to collaboration</button>
+          <h1 style="margin-top:.6rem;" id="team-title">Team workspace</h1>
+          <div class="sub" id="team-subtitle"></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="panel-head"><h2>The problem</h2></div>
+          <p id="team-problem-summary"></p>
+          <p class="field-hint" id="team-problem-meta"></p>
+        </div>
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Team</h2></div>
+          <p class="field-hint">Mentor: <strong id="team-mentor"></strong></p>
+          <div id="team-members" style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.6rem;"></div>
+          <p class="field-hint" style="margin-top:1rem;">In production, only these students and their mentor would be able to open this workspace.</p>
+        </div>
+
+        <div class="panel span-7">
+          <div class="panel-head"><h2>Workspace notes</h2></div>
+          <ul class="saksham-log" id="team-notes"></ul>
+          <form id="team-note-form" style="margin-top:1rem;">
+            <div class="field">
+              <label for="team-note-input">Add a note</label>
+              <textarea id="team-note-input" rows="2" placeholder="Progress update, question for the specialist, next step..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Post note</button>
+          </form>
+        </div>
+
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Research papers</h2></div>
+          <ul class="paper-list" id="team-papers"></ul>
+          <form id="team-paper-form" style="margin-top:1rem;">
+            <div class="field">
+              <label for="team-paper-title">Title</label>
+              <input type="text" id="team-paper-title" placeholder="e.g. Stability test results v1" />
+            </div>
+            <div class="field">
+              <label for="team-paper-file">File</label>
+              <input type="file" id="team-paper-file" accept=".pdf,.doc,.docx" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-sm">Upload to team</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SETTINGS ---------- -->
+    <section class="view" id="view-settings">
+      <div class="main-head">
+        <div>
+          <h1>Settings</h1>
+          <div class="sub">Your institution's account, your control.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel span-7">
+          <div class="panel-head"><h2>Edit profile</h2></div>
+          <form id="profile-form">
+            <div class="field">
+              <label for="settings-name">Institution name</label>
+              <input type="text" id="settings-name" />
+            </div>
+            <div class="field">
+              <label for="settings-headline">Headline</label>
+              <input type="text" id="settings-headline" placeholder="e.g. BAMS &amp; Yoga Sciences college" />
+            </div>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </form>
+        </div>
+
+        <div class="panel span-5">
+          <div class="panel-head"><h2>Account</h2></div>
+          <div class="settings-row">
+            <div><div class="label">Kaushala ID</div><div class="desc" id="settings-kid">KSH-I-00000</div></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="label">Email</div><div class="desc" id="settings-email">—</div></div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="label">Notifications</div>
+              <div class="desc">Saksham updates and roster changes</div>
+            </div>
+            <button class="switch" id="notif-switch" aria-label="Toggle notifications"></button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="label">Appearance</div>
+              <div class="desc">Dark or light mode</div>
+            </div>
+            <button class="switch" id="settings-theme-switch" aria-label="Toggle dark mode"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= FORM TEAM MODAL ================= -->
+<div class="modal-backdrop" id="team-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="team-modal-title">Form a team</h3>
+      <button class="modal-close" id="team-modal-close" aria-label="Close">&times;</button>
+    </div>
+    <form id="team-form">
+      <div class="field">
+        <label for="team-name-input">Team name</label>
+        <input type="text" id="team-name-input" placeholder="e.g. Triphala Stability Squad" required />
+      </div>
+      <div class="field">
+        <label for="team-mentor-input">Mentor from your institution</label>
+        <input type="text" id="team-mentor-input" placeholder="e.g. Dr. Rina Kapoor" required />
+      </div>
+      <div class="field">
+        <label for="team-members-input">Student K.IDs (comma or line separated)</label>
+        <textarea id="team-members-input" rows="3" placeholder="KSH-S-48213, KSH-S-91027"></textarea>
+        <div class="field-hint">Only K.IDs already on your verified roster can be added.</div>
+        <div class="field-error" id="team-members-error"></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Create team</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="js/data%20(2).js"></script>
+<script src="js/institution.js"></script>
+</body>
+</html>
